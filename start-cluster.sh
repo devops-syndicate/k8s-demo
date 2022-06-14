@@ -3,12 +3,7 @@
 INGRESS_HOST=127.0.0.1
 
 # start kind cluster with 3 nodes
-if [[ $(arch) = arm64 ]]; then
-  # start cluster for arm64
-  kind create cluster --config=cluster-arm64.yaml
-else
-  kind create cluster --config=cluster-x86_64.yaml
-fi
+kind create cluster --config=cluster.yaml
 
 # install ingress controller
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
@@ -16,7 +11,7 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
-  --timeout=90s
+  --timeout=3m0s
 
 ## install argocd
 helm repo add argo https://argoproj.github.io/argo-helm
@@ -68,4 +63,5 @@ linkerd jaeger install | kubectl apply -f -
 linkerd jaeger check
 
 ## Deploy AWS crossplane provider
+kubectl apply -n crossplane-system -f crossplane/package.yaml
 kubectl apply -n crossplane-system -f crossplane/provider-config.yaml

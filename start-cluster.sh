@@ -1,9 +1,14 @@
-#!/bin/sh
+#!/bin/bash
 
 INGRESS_HOST=127.0.0.1
 
 # start kind cluster with 3 nodes
-kind create cluster --config=cluster.yaml
+if [[ $(arch) = arm64 ]]; then
+  # start cluster for arm64
+  kind create cluster --config=cluster-arm64.yaml
+else
+  kind create cluster --config=cluster-x86_64.yaml
+fi
 
 # install ingress controller
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml

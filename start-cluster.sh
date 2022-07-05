@@ -44,7 +44,7 @@ helm upgrade --install \
   crossplane crossplane-stable/crossplane \
   -n crossplane-system \
   --create-namespace \
-  --set "provider.packages={crossplane/provider-aws:master, crossplane/provider-helm:master}" \
+  --set "provider.packages={crossplane/provider-aws:master}" \
   --wait
 
 ## Create AWS credential secrets for AWS crossplane provider

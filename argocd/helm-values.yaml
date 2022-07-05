@@ -3,6 +3,11 @@ server:
     enabled: true
   extraArgs:
   - --insecure
+  config:
+    accounts.backstage: apiKey
+  rbacConfig:
+    policy.csv: |
+      g, backstage, role:admin
 controller:
   args:
     appResyncPeriod: 30

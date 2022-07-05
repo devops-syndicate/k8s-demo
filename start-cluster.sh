@@ -44,7 +44,7 @@ helm upgrade --install \
   crossplane crossplane-stable/crossplane \
   -n crossplane-system \
   --create-namespace \
-  --set "provider.packages={crossplane/provider-aws:master}" \
+  --set "provider.packages={crossplane/provider-aws:master,crossplane/provider-helm:master}" \
   --wait
 
 ## Create AWS credential secrets for AWS crossplane provider
@@ -65,3 +65,8 @@ linkerd jaeger check
 ## Deploy AWS crossplane provider
 kubectl apply -n crossplane-system -f crossplane/package.yaml
 kubectl apply -n crossplane-system -f crossplane/provider-config.yaml
+
+## Generate token for backstage
+echo "Generate token for backstage"
+argocd login argo-cd.127.0.0.1.nip.io --username admin --password admin --insecure --grpc-web-root-path /
+argocd account generate-token --account backstage --id backstage

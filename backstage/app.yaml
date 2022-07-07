@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backstage-db-credentials
+  namespace: backstage
+type: Opaque
+data:
+  POSTGRES_USER: YmFja3N0YWdl
+  POSTGRES_PASSWORD: YmFja3N0YWdl
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backstage-db
+  namespace: backstage
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 5G
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: '/mnt/data'
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backstage-db-claim
+  namespace: backstage
+spec:
+  storageClassName: manual
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5G
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage-db
+  namespace: backstage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage-db
+  template:
+    metadata:
+      labels:
+        app: backstage-db
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13.2-alpine
+        imagePullPolicy: 'IfNotPresent'
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: backstage-db-credentials
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: db-volume
+      volumes:
+      - name: db-volume
+        persistentVolumeClaim:
+          claimName: backstage-db-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage-db
+  namespace: backstage
+spec:
+  selector:
+    app: backstage-db
+  ports:
+  - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  namespace: backstage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage
+  template:
+    metadata:
+      labels:
+        app: backstage
+    spec:
+      containers:
+      - name: backstage
+        image: sselzer/backstage:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 7007
+        envFrom:
+        - secretRef:
+            name: backstage
+        - secretRef:
+            name: backstage-db-credentials
+        volumeMounts:
+        - mountPath: "/tmp/backstage"
+          name: github-app-config
+          readOnly: true
+      volumes:
+      - name: github-app-config
+        secret:
+          secretName: backstage-github-file
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage
+  namespace: backstage
+spec:
+  selector:
+    app: backstage
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backstage
+  namespace: backstage
+spec:
+  rules:
+  - host: backstage.127.0.0.1.nip.io
+    http:
+      paths:
+      - backend:
+          service:
+            name: backstage
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

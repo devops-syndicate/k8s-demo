@@ -66,7 +66,35 @@ linkerd jaeger check
 kubectl apply -n crossplane-system -f crossplane/package.yaml
 kubectl apply -n crossplane-system -f crossplane/provider-config.yaml
 
+## install backstage
+kubectl create namespace backstage
+
+rm backstage.env
+
+echo "POSTGRES_HOST=backstage-db" >> backstage.env
+echo "POSTGRES_PORT=5432" >> backstage.env
+echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> backstage.env
+echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> backstage.env
+echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> backstage.env
+
 ## Generate token for backstage
 echo "Generate token for backstage"
-argocd login argo-cd.127.0.0.1.nip.io --username admin --password admin --insecure --grpc-web-root-path /
-argocd account generate-token --account backstage --id backstage
+argocd login argo-cd.127.0.0.1.nip.io --name local --username admin --password admin --insecure --grpc-web-root-path /
+AUTH_TOKEN=$(yq eval '.users[0].auth-token' ~/.config/argocd/config)
+argocd account generate-token --account backstage --id backstage --auth-token ${AUTH_TOKEN} | sed -e 's/^/ARGOCD_AUTH_TOKEN=/' >> backstage.env
+
+kubectl create secret generic backstage -n backstage --from-env-file=backstage.env
+
+rm backstage.env
+
+kubectl create secret generic backstage-github-file -n backstage --from-file=github-credentials.yaml=./github-credentials.yaml
+
+kubectl apply -f backstage/app.yaml
+
+kubectl wait --namespace backstage \
+  --for=condition=ready pod \
+  --selector=app=backstage \
+  --timeout=3m0s
+
+## Deploy Apps in ArgoCD
+kubectl apply -f https://raw.githubusercontent.com/devops-syndicate/argocd-apps/main/applicationset.yaml -n argocd

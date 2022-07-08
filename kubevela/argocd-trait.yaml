@@ -1,0 +1,26 @@
+apiVersion: core.oam.dev/v1beta1
+kind: TraitDefinition
+metadata:
+  annotations:
+    definition.oam.dev/description: "Specify annotations to mark all resources to be ignored by ArgoCD"
+  name: argocd
+spec:
+  schematic:
+    cue:
+      template: |
+        patch: {
+            metadata: annotations: {
+                "argocd.argoproj.io/compare-options": "IgnoreExtraneous"
+                "argocd.argoproj.io/sync-options": "Prune=false"
+            }
+        }
+        patchOutputs: {
+          for k, v in context.outputs {
+            "\(k)": {
+              metadata: annotations: {
+                "argocd.argoproj.io/compare-options": "IgnoreExtraneous"
+                "argocd.argoproj.io/sync-options":    "Prune=false"
+              }
+            }
+          }
+        }

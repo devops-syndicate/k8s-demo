@@ -36,6 +36,8 @@ helm upgrade --install \
   --version 1.4.1 \
   --wait
 
+kubectl apply -f kubevela argocd-trait.yaml -n vela-system
+
 ## install crossplane
 helm repo add crossplane-stable https://charts.crossplane.io/stable
 helm repo update

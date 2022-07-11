@@ -77,7 +77,6 @@ echo "POSTGRES_HOST=backstage-db" >> backstage.env
 echo "POSTGRES_PORT=5432" >> backstage.env
 echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> backstage.env
 echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> backstage.env
-echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> backstage.env
 
 ## Generate token for backstage
 echo "Generate token for backstage"

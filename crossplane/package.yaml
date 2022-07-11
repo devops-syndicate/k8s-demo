@@ -13,10 +13,10 @@ spec:
     kind: PostgreSQLInstance
     plural: postgresqlinstances
   connectionSecretKeys:
-    - username
-    - password
-    - endpoint
-    - port
+  - username
+  - password
+  - endpoint
+  - port
   versions:
   - name: v1alpha1
     served: true
@@ -34,9 +34,9 @@ spec:
                   storageGB:
                     type: integer
                 required:
-                  - storageGB
+                - storageGB
             required:
-              - parameters
+            - parameters
 ---
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
@@ -44,40 +44,38 @@ metadata:
   name: xpostgresqlinstances.aws.database.example.org
   labels:
     provider: aws
-    guide: quickstart
-    vpc: default
 spec:
   writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
     apiVersion: database.example.org/v1alpha1
     kind: XPostgreSQLInstance
   resources:
-    - name: rdsinstance
-      base:
-        apiVersion: database.aws.crossplane.io/v1beta1
-        kind: RDSInstance
-        spec:
-          forProvider:
-            region: eu-central-1
-            dbInstanceClass: db.t2.small
-            masterUsername: masteruser
-            engine: postgres
-            engineVersion: "12"
-            skipFinalSnapshotBeforeDeletion: true
-            publiclyAccessible: true
-          writeConnectionSecretToRef:
-            namespace: crossplane-system
-      patches:
-        - fromFieldPath: "metadata.uid"
-          toFieldPath: "spec.writeConnectionSecretToRef.name"
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-postgresql"
-        - fromFieldPath: "spec.parameters.storageGB"
-          toFieldPath: "spec.forProvider.allocatedStorage"
-      connectionDetails:
-        - fromConnectionSecretKey: username
-        - fromConnectionSecretKey: password
-        - fromConnectionSecretKey: endpoint
-        - fromConnectionSecretKey: port
+  - name: rdsinstance
+    base:
+      apiVersion: database.aws.crossplane.io/v1beta1
+      kind: RDSInstance
+      spec:
+        forProvider:
+          region: eu-central-1
+          dbInstanceClass: db.t2.small
+          masterUsername: masteruser
+          engine: postgres
+          engineVersion: "12"
+          skipFinalSnapshotBeforeDeletion: true
+          publiclyAccessible: true
+        writeConnectionSecretToRef:
+          namespace: crossplane-system
+    patches:
+    - fromFieldPath: "metadata.uid"
+      toFieldPath: "spec.writeConnectionSecretToRef.name"
+      transforms:
+      - type: string
+        string:
+          fmt: "%s-db"
+    - fromFieldPath: "spec.parameters.storageGB"
+      toFieldPath: "spec.forProvider.allocatedStorage"
+    connectionDetails:
+    - fromConnectionSecretKey: username
+    - fromConnectionSecretKey: password
+    - fromConnectionSecretKey: endpoint
+    - fromConnectionSecretKey: port

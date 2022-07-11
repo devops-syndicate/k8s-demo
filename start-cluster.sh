@@ -100,3 +100,4 @@ kubectl wait --namespace backstage \
 
 ## Deploy Apps in ArgoCD
 kubectl apply -f https://raw.githubusercontent.com/devops-syndicate/argocd-apps/main/applicationset.yaml -n argocd
+kubectl apply -f https://raw.githubusercontent.com/devops-syndicate/infrastructure/main/applicationset.yaml -n argocd

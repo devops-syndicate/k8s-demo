@@ -9,6 +9,15 @@ data:
   POSTGRES_PASSWORD: YmFja3N0YWdl
 ---
 apiVersion: v1
+data:
+  ARGOCD_SERVER: http://argocd-server.argocd
+  BASE_DOMAIN: BASE_DOMAIN_VALUE
+kind: ConfigMap
+metadata:
+  name: backstage-cm
+  namespace: backstage
+---
+apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: backstage-db
@@ -108,6 +117,8 @@ spec:
             name: backstage
         - secretRef:
             name: backstage-db-credentials
+        - configMapRef:
+            name: backstage-cm
         volumeMounts:
         - mountPath: "/tmp/backstage"
           name: github-app-config
@@ -137,7 +148,7 @@ metadata:
   namespace: backstage
 spec:
   rules:
-  - host: backstage.127.0.0.1.nip.io
+  - host: backstage.BASE_DOMAIN_VALUE
     http:
       paths:
       - backend:

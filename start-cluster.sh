@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INGRESS_HOST=127.0.0.1
+INGRESS_HOST=127.0.0.1.nip.io
 
 # start kind cluster with 3 nodes
 kind create cluster --config=cluster.yaml
@@ -21,7 +21,7 @@ helm upgrade --install \
   argocd argo/argo-cd \
   -n argocd \
   --create-namespace \
-  --set server.ingress.hosts="{argo-cd.$INGRESS_HOST.nip.io}" \
+  --set server.ingress.hosts="{argo-cd.$INGRESS_HOST}" \
   --values argocd/helm-values.yaml \
   --timeout 6m0s \
   --wait
@@ -49,6 +49,14 @@ helm upgrade --install \
   --set "provider.packages={crossplane/provider-aws:master,crossplane/provider-helm:master}" \
   --wait
 
+while : ; do
+  kubectl wait --namespace crossplane-system \
+    --for=condition=ready pod \
+    --selector=pkg.crossplane.io/provider=provider-aws \
+    --timeout=3m0s && break
+  sleep 10
+done
+
 ## Create AWS credential secrets for AWS crossplane provider
 AWS_PROFILE=default && echo "[default]
 aws_access_key_id=$(aws configure get aws_access_key_id --profile $AWS_PROFILE)
@@ -57,14 +65,9 @@ aws_secret_access_key=$(aws configure get aws_secret_access_key --profile $AWS_P
 kubectl create secret generic aws-creds -n crossplane-system --from-file=creds=./creds.conf
 rm creds.conf
 
-## Install linkerd
-linkerd install | kubectl apply -f -
-linkerd viz install --set jaegerUrl=jaeger.linkerd-jaeger:16686 | kubectl apply -f -
-linkerd check
-linkerd jaeger install | kubectl apply -f -
-linkerd jaeger check
+kubectl wait --for condition=established --timeout=60s crd/compositeresourcedefinitions.apiextensions.crossplane.io crd/compositions.apiextensions.crossplane.io crd/providerconfigs.aws.crossplane.io
 
-## Deploy AWS crossplane provider
+## Configure AWS Crossplane Provider
 kubectl apply -n crossplane-system -f crossplane/package.yaml
 kubectl apply -n crossplane-system -f crossplane/provider-config.yaml
 
@@ -80,7 +83,7 @@ echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> backstage.env
 
 ## Generate token for backstage
 echo "Generate token for backstage"
-argocd login argo-cd.127.0.0.1.nip.io --name local --username admin --password admin --insecure --grpc-web-root-path /
+argocd login argo-cd.${INGRESS_HOST} --name local --username admin --password admin --insecure --grpc-web-root-path /
 AUTH_TOKEN=$(yq eval '.users[0].auth-token' ~/.config/argocd/config)
 argocd account generate-token --account backstage --id backstage --auth-token ${AUTH_TOKEN} | sed -e 's/^/ARGOCD_AUTH_TOKEN=/' >> backstage.env
 
@@ -90,7 +93,7 @@ rm backstage.env
 
 kubectl create secret generic backstage-github-file -n backstage --from-file=github-credentials.yaml=./github-credentials.yaml
 
-kubectl apply -f backstage/app.yaml
+sed "s/BASE_DOMAIN_VALUE/${INGRESS_HOST}/g" backstage/app.yaml | kubectl apply -f -
 
 kubectl wait --namespace backstage \
   --for=condition=ready pod \

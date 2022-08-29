@@ -5,6 +5,7 @@ server:
   - --insecure
   config:
     accounts.backstage: apiKey
+    application.resourceTrackingMethod: annotation+label
   rbacConfig:
     policy.csv: |
       g, backstage, role:admin

@@ -35,6 +35,7 @@ argocd base_host=kind_base_domain:
     argocd argo/argo-cd \
     -n argocd \
     --create-namespace \
+    --version 5.3.6 \
     --set server.ingress.hosts="{argo-cd.{{base_host}}}" \
     --values argocd/helm-values.yaml \
     --timeout 6m0s \

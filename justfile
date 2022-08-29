@@ -39,6 +39,8 @@ argocd base_host=kind_base_domain:
     --values argocd/helm-values.yaml \
     --timeout 6m0s \
     --wait
+  kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/argocd-apps/main/applicationset.yaml
+  kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/infrastructure/main/applicationset.yaml
 
 # Installs Kubevela
 kubevela:
@@ -55,7 +57,7 @@ kubevela:
 # Installs NGINX Ingress Controller
 nginx:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-  kubectl wait --namespace ingress-nginx \
+  kubectl wait -n ingress-nginx \
     --for=condition=ready pod \
     --selector=app.kubernetes.io/component=controller \
     --timeout=3m0s
@@ -86,7 +88,7 @@ crossplane:
     --wait
 
   while : ; do
-    kubectl wait --namespace crossplane-system \
+    kubectl wait -n crossplane-system \
       --for=condition=ready pod \
       --selector=pkg.crossplane.io/provider=provider-aws \
       --timeout=3m0s && break
@@ -130,7 +132,7 @@ grafana base_host=kind_base_domain: nginx
     --version 2.6.11 \
     --wait
   while : ; do
-    kubectl rollout --namespace grafana-operator status deployment grafana-deployment && break
+    kubectl rollout -n grafana-operator status deployment grafana-deployment && break
     sleep 2
   done
   kubectl apply -f grafana-operator/datasource.yaml
@@ -158,7 +160,7 @@ backstage base_host=kind_base_domain:
 
   sed "s/BASE_DOMAIN_VALUE/{{base_host}}/g" backstage/app.yaml | kubectl apply -f -
 
-  kubectl wait --namespace backstage \
+  kubectl wait -n backstage \
     --for=condition=ready pod \
     --selector=app=backstage \
     --timeout=3m0s

@@ -2,3 +2,4 @@ creds.conf
 .envrc
 .env
 github-credentials.yaml
+grafana.env

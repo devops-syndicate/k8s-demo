@@ -1,4 +1,9 @@
 kind_base_domain := '127.0.0.1.nip.io'
+argocd_version := '5.4.0'
+kubevela_version := '1.5.4'
+prometheus_version := '15.12.0'
+grafana_version := '2.7.0'
+crossplane_version := '1.9.0'
 
 _default:
   @just -l
@@ -35,7 +40,7 @@ argocd base_host=kind_base_domain:
     argocd argo/argo-cd \
     -n argocd \
     --create-namespace \
-    --version 5.3.6 \
+    --version {{argocd_version}} \
     --set server.ingress.hosts="{argo-cd.{{base_host}}}" \
     --values argocd/helm-values.yaml \
     --timeout 6m0s \
@@ -51,7 +56,7 @@ kubevela:
     kubevela kubevela/vela-core \
     -n vela-system \
     --create-namespace \
-    --version 1.5.3 \
+    --version {{kubevela_version}} \
     --wait
   kubectl apply -f kubevela/argocd-trait.yaml -n vela-system
 
@@ -71,7 +76,7 @@ prometheus:
     prometheus prometheus-community/prometheus \
     -n prometheus \
     --create-namespace \
-    --version 15.12.0 \
+    --version {{prometheus_version}} \
     --wait
 
 # Installs Crossplane
@@ -85,6 +90,7 @@ crossplane:
     crossplane crossplane-stable/crossplane \
     -n crossplane-system \
     --create-namespace \
+    --version {{crossplane_version}} \
     --set "provider.packages={crossplane/provider-aws:master,crossplane/provider-helm:master}" \
     --wait
 
@@ -130,7 +136,7 @@ grafana base_host=kind_base_domain: nginx
     --set grafana.ingress.hostname="grafana.{{base_host}}" \
     --set grafana.config.server.root_url="https://grafana.{{base_host}}" \
     --values grafana-operator/helm-values.yaml \
-    --version 2.6.11 \
+    --version {{grafana_version}} \
     --wait
   while : ; do
     kubectl rollout -n grafana-operator status deployment grafana-deployment && break

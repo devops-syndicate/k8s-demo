@@ -4,6 +4,7 @@ kubevela_version := '1.5.4'
 prometheus_version := '15.12.0'
 grafana_version := '2.7.0'
 crossplane_version := '1.9.0'
+kyverno_version := '2.6.0-rc2'
 
 _default:
   @just -l
@@ -31,6 +32,17 @@ stop_kind:
 # Starts KIND cluster
 start_kind:
   kind create cluster --name k8s-demo --config=cluster.yaml
+
+kyverno:
+  helm repo add kyverno https://kyverno.github.io/kyverno/
+  helm repo update
+  helm upgrade --install \
+    kyverno kyverno/kyverno \
+    -n kyverno \
+    --create-namespace \
+    --version {{kyverno_version}} \
+    --timeout 6m0s \
+    --wait
 
 # Installs ArgoCD
 argocd base_host=kind_base_domain:

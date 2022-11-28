@@ -3,3 +3,4 @@ creds.conf
 .env
 github-credentials.yaml
 grafana.env
+*.tgz

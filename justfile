@@ -1,10 +1,11 @@
 kind_base_domain := '127.0.0.1.nip.io'
-argocd_version := '5.4.0'
-kubevela_version := '1.5.4'
-prometheus_version := '15.12.0'
-grafana_version := '2.7.0'
-crossplane_version := '1.9.0'
-kyverno_version := '2.6.0-rc2'
+argocd_version := '5.14.1'
+kubevela_version := '1.6.3'
+prometheus_version := '18.0.0'
+grafana_version := '2.7.10'
+crossplane_version := '1.10.1'
+kyverno_version := '2.6.2'
+metacontroller_version := 'v4.7.1'
 
 _default:
   @just -l
@@ -33,6 +34,16 @@ stop_kind:
 start_kind:
   kind create cluster --name k8s-demo --config=cluster.yaml
 
+# Installs metacontroller
+metacontroller:
+  helm pull oci://ghcr.io/metacontroller/metacontroller-helm --version={{metacontroller_version}}
+  helm upgrade --install metacontroller ./metacontroller-helm-{{metacontroller_version}}.tgz \
+    -n metacontroller \
+    --create-namespace \
+    --set fullnameOverride=metacontroller
+  rm ./metacontroller-helm-{{metacontroller_version}}.tgz
+
+# Installs kyverno
 kyverno:
   helm repo add kyverno https://kyverno.github.io/kyverno/
   helm repo update
@@ -40,9 +51,7 @@ kyverno:
     kyverno kyverno/kyverno \
     -n kyverno \
     --create-namespace \
-    --version {{kyverno_version}} \
-    --timeout 6m0s \
-    --wait
+    --version {{kyverno_version}}
 
 # Installs ArgoCD
 argocd base_host=kind_base_domain:
@@ -68,17 +77,11 @@ kubevela:
     kubevela kubevela/vela-core \
     -n vela-system \
     --create-namespace \
-    --version {{kubevela_version}} \
-    --wait
-  kubectl apply -f kubevela/argocd-trait.yaml -n vela-system
+    --version {{kubevela_version}}
 
 # Installs NGINX Ingress Controller
 nginx:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-  kubectl wait -n ingress-nginx \
-    --for=condition=ready pod \
-    --selector=app.kubernetes.io/component=controller \
-    --timeout=3m0s
 
 # Installs Prometheus
 prometheus:
@@ -88,8 +91,7 @@ prometheus:
     prometheus prometheus-community/prometheus \
     -n prometheus \
     --create-namespace \
-    --version {{prometheus_version}} \
-    --wait
+    --version {{prometheus_version}}
 
 # Installs Crossplane
 crossplane:
@@ -181,5 +183,4 @@ backstage base_host=kind_base_domain:
 
   kubectl wait -n backstage \
     --for=condition=ready pod \
-    --selector=app=backstage \
-    --timeout=3m0s
+    --selector=app=backstage

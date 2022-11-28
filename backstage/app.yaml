@@ -107,7 +107,7 @@ spec:
     spec:
       containers:
       - name: backstage
-        image: sselzer/backstage:latest
+        image: sselzer/backstage:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - name: http

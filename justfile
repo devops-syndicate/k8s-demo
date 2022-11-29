@@ -4,6 +4,7 @@ kubevela_version := '1.6.3'
 prometheus_version := '18.0.0'
 grafana_version := '2.7.10'
 loki_version := '2.8.7'
+tempo_version := '0.16.6'
 crossplane_version := '1.10.1'
 kyverno_version := '2.6.2'
 metacontroller_version := 'v4.7.1'
@@ -18,6 +19,8 @@ up:
   just nginx
   just prometheus
   just grafana
+  just loki
+  just tempo
   just argocd
   just kubevela
   just crossplane
@@ -104,6 +107,17 @@ loki:
     --create-namespace \
     --version {{loki_version}}
 
+# Installs Tempo
+tempo:
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo update
+  helm upgrade --install \
+    tempo grafana/tempo \
+    -n tempo \
+    --create-namespace \
+    --set "tempo.searchEnabled=true" \
+    --version {{tempo_version}}
+
 # Installs Crossplane
 crossplane:
   #!/usr/bin/env bash
@@ -169,6 +183,7 @@ grafana base_host=kind_base_domain: nginx
   done
   kubectl apply -f grafana-operator/prometheus-datasource.yaml
   kubectl apply -f grafana-operator/loki-datasource.yaml
+  kubectl apply -f grafana-operator/tempo-datasource.yaml
 
 # Installs Backstage
 backstage base_host=kind_base_domain:

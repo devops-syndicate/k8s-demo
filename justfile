@@ -3,6 +3,7 @@ argocd_version := '5.14.1'
 kubevela_version := '1.6.3'
 prometheus_version := '18.0.0'
 grafana_version := '2.7.10'
+loki_version := '2.8.7'
 crossplane_version := '1.10.1'
 kyverno_version := '2.6.2'
 metacontroller_version := 'v4.7.1'
@@ -93,6 +94,16 @@ prometheus:
     --create-namespace \
     --version {{prometheus_version}}
 
+# Installs Loki
+loki:
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo update
+  helm upgrade --install \
+    loki grafana/loki-stack \
+    -n loki \
+    --create-namespace \
+    --version {{loki_version}}
+
 # Installs Crossplane
 crossplane:
   #!/usr/bin/env bash
@@ -156,7 +167,8 @@ grafana base_host=kind_base_domain: nginx
     kubectl rollout -n grafana-operator status deployment grafana-deployment && break
     sleep 2
   done
-  kubectl apply -f grafana-operator/datasource.yaml
+  kubectl apply -f grafana-operator/prometheus-datasource.yaml
+  kubectl apply -f grafana-operator/loki-datasource.yaml
 
 # Installs Backstage
 backstage base_host=kind_base_domain:

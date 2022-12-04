@@ -8,5 +8,10 @@ spec:
   datasources:
     - name: tempo
       type: tempo
+      uid: P8D6546721A1D106C
       url: http://tempo.tempo:3100
       isDefault: false
+      jsonData:
+        tracesToLogs:
+          datasourceUid: P982945308D3682D1
+          filterBySpanID: true

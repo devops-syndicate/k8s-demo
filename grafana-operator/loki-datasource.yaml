@@ -8,5 +8,12 @@ spec:
   datasources:
   - name: loki
     type: loki
+    uid: P982945308D3682D1
     url: http://loki.loki:3100
     isDefault: false
+    jsonData:
+      derivedFields:
+      - name: trace_id
+        matcherRegex: 'trace_id\":\"(\w+)\"'
+        url: '$${__value.raw}'
+        datasourceUid: P8D6546721A1D106C

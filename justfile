@@ -8,6 +8,7 @@ tempo_version := '0.16.6'
 crossplane_version := '1.10.1'
 kyverno_version := '2.6.2'
 metacontroller_version := 'v4.7.1'
+cilium_version := 'v1.12.4'
 
 _default:
   @just -l
@@ -16,6 +17,7 @@ _default:
 up:
   just stop_kind
   just start_kind
+  just cilium
   just nginx
   just prometheus
   just grafana
@@ -37,6 +39,26 @@ stop_kind:
 # Starts KIND cluster
 start_kind:
   kind create cluster --name k8s-demo --config=cluster.yaml
+
+# Installs cilium
+cilium:
+  helm repo add cilium https://helm.cilium.io/
+  helm repo update
+  helm upgrade --install \
+    cilium cilium/cilium \
+    -n kube-system \
+    --set nodeinit.enabled=true \
+    --set kubeProxyReplacement=partial \
+    --set hostServices.enabled=false \
+    --set externalIPs.enabled=true \
+    --set nodePort.enabled=true \
+    --set hostPort.enabled=true \
+    --set ipam.mode=kubernetes \
+    --set hubble.relay.enabled=true \
+    --set hubble.ui.enabled=true \
+    --version {{cilium_version}} \
+    --timeout 6m0s \
+    --wait
 
 # Installs metacontroller
 metacontroller:

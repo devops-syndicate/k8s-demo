@@ -17,7 +17,6 @@ _default:
 up:
   just stop_kind
   just start_kind
-  just cilium
   just nginx
   just prometheus
   just grafana
@@ -39,6 +38,7 @@ stop_kind:
 # Starts KIND cluster
 start_kind:
   kind create cluster --name k8s-demo --config=cluster.yaml
+  just cilium
 
 # Installs cilium
 cilium:
@@ -152,15 +152,41 @@ crossplane:
     -n crossplane-system \
     --create-namespace \
     --version {{crossplane_version}} \
-    --set "provider.packages={crossplane/provider-aws:master,crossplane/provider-helm:master}" \
+    --set "provider.packages={crossplane/provider-aws:v0.32.0,crossplane/provider-helm:v0.11.1,crossplane/provider-kubernetes:v0.4.1}" \
     --wait
+
+  while : ; do
+    kubectl wait -n crossplane-system \
+      --for=condition=ready pod \
+      --selector=pkg.crossplane.io/provider=provider-kubernetes \
+      --timeout=3m0s && break
+    sleep 20
+  done
+
+  ## Configure Kubernetes Crossplane Provider
+  KUBERNETES_PROVIDER_SA=$(kubectl -n crossplane-system get sa -o name | grep provider-kubernetes | sed -e 's|serviceaccount\/|crossplane-system:|g')
+  kubectl create clusterrolebinding provider-kubernetes-admin-binding --clusterrole cluster-admin --serviceaccount="${KUBERNETES_PROVIDER_SA}" || true
+  kubectl apply -n crossplane-system -f crossplane/kubernetes-provider-config.yaml
+
+  while : ; do
+    kubectl wait -n crossplane-system \
+      --for=condition=ready pod \
+      --selector=pkg.crossplane.io/provider=provider-helm \
+      --timeout=3m0s && break
+    sleep 20
+  done
+
+  ## Configure Helm Crossplane Provider
+  HELM_PROVIDER_SA=$(kubectl -n crossplane-system get sa -o name | grep provider-helm | sed -e 's|serviceaccount\/|crossplane-system:|g')
+  kubectl create clusterrolebinding provider-helm-admin-binding --clusterrole cluster-admin --serviceaccount="${HELM_PROVIDER_SA}" || true
+  kubectl apply -n crossplane-system -f crossplane/helm-provider-config.yaml
 
   while : ; do
     kubectl wait -n crossplane-system \
       --for=condition=ready pod \
       --selector=pkg.crossplane.io/provider=provider-aws \
       --timeout=3m0s && break
-    sleep 10
+    sleep 20
   done
 
   ## Create AWS credential secrets for AWS crossplane provider
@@ -175,7 +201,7 @@ crossplane:
 
   ## Configure AWS Crossplane Provider
   kubectl apply -n crossplane-system -f crossplane/package.yaml
-  kubectl apply -n crossplane-system -f crossplane/provider-config.yaml
+  kubectl apply -n crossplane-system -f crossplane/aws-provider-config.yaml
 
 ## Installs Grafana
 grafana base_host=kind_base_domain: nginx

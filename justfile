@@ -1,14 +1,14 @@
 kind_base_domain := '127.0.0.1.nip.io'
-argocd_version := '5.14.1'
-kubevela_version := '1.6.3'
-prometheus_version := '18.0.0'
-grafana_version := '2.7.10'
-loki_version := '2.8.7'
-tempo_version := '0.16.6'
+argocd_version := '5.17.1'
+kubevela_version := '1.7.0'
+prometheus_version := '19.3.1'
+grafana_version := '2.7.15'
+loki_version := '2.8.9'
+tempo_version := '0.16.8'
 crossplane_version := '1.10.1'
-kyverno_version := '2.6.2'
-metacontroller_version := 'v4.7.1'
-cilium_version := 'v1.12.4'
+kyverno_version := '2.6.5'
+metacontroller_version := 'v4.7.3'
+cilium_version := 'v1.12.5'
 
 _default:
   @just -l
@@ -258,4 +258,5 @@ backstage base_host=kind_base_domain:
 
   kubectl wait -n backstage \
     --for=condition=ready pod \
-    --selector=app=backstage
+    --selector=app=backstage \
+    --timeout=5m

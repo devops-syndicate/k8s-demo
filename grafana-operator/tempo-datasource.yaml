@@ -8,10 +8,11 @@ spec:
   datasources:
     - name: tempo
       type: tempo
-      uid: P8D6546721A1D106C
+      uid: tempo
       url: http://tempo.tempo:3100
       isDefault: false
       jsonData:
         tracesToLogs:
-          datasourceUid: P982945308D3682D1
+          datasourceUid: loki
+          filterByTraceID: true
           filterBySpanID: true

@@ -9,6 +9,7 @@ crossplane_version := '1.10.1'
 kyverno_version := '2.6.5'
 metacontroller_version := 'v4.7.3'
 cilium_version := 'v1.12.5'
+pyroscope_version := '0.2.86'
 
 _default:
   @just -l
@@ -22,6 +23,7 @@ up:
   just loki
   just tempo
   just grafana
+  just pyroscope
   just argocd
   just kubevela
   just crossplane
@@ -79,31 +81,18 @@ kyverno:
     --create-namespace \
     --version {{kyverno_version}}
 
-# Installs ArgoCD
-argocd base_host=kind_base_domain:
-  helm repo add argo https://argoproj.github.io/argo-helm
+# Installs pyroscope
+pyroscope base_host=kind_base_domain:
+  helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
   helm repo update
   helm upgrade --install \
-    argocd argo/argo-cd \
-    -n argocd \
+    pyroscope pyroscope-io/pyroscope \
+    -n pyroscope \
     --create-namespace \
-    --version {{argocd_version}} \
-    --set server.ingress.hosts="{argo-cd.{{base_host}}}" \
-    --values argocd/helm-values.yaml \
-    --timeout 6m0s \
+    --set-json ingress.hosts='[{"host":"pyroscope.{{base_host}}","paths":[{"path":"/","pathType":"Prefix"}]}]' \
+    --values pyroscope/helm-values.yaml \
+    --version {{pyroscope_version}} \
     --wait
-  kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/argocd-apps/main/applicationset.yaml
-  kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/infrastructure/main/applicationset.yaml
-
-# Installs Kubevela
-kubevela:
-  helm repo add kubevela https://charts.kubevela.net/core
-  helm repo update
-  helm upgrade --install \
-    kubevela kubevela/vela-core \
-    -n vela-system \
-    --create-namespace \
-    --version {{kubevela_version}}
 
 # Installs NGINX Ingress Controller
 nginx:
@@ -140,6 +129,55 @@ tempo:
     --create-namespace \
     --set "tempo.searchEnabled=true" \
     --version {{tempo_version}}
+
+## Installs Grafana
+grafana base_host=kind_base_domain: nginx
+  #!/usr/bin/env bash
+  kubectl create namespace grafana
+  rm grafana.env
+  echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> grafana.env
+  echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> grafana.env
+
+  kubectl create secret generic grafana-github -n grafana --from-env-file=grafana.env
+  kubectl apply -f grafana/grafana-datasources.yaml
+
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo update
+  helm upgrade --install \
+    grafana grafana/grafana \
+    -n grafana \
+    --create-namespace \
+    --set ingress.hosts="{grafana.{{base_host}}}" \
+    --set "grafana\.ini".server.root_url="https://grafana.{{base_host}}" \
+    --values grafana/helm-values.yaml \
+    --version {{grafana_version}} \
+    --wait
+
+# Installs ArgoCD
+argocd base_host=kind_base_domain:
+  helm repo add argo https://argoproj.github.io/argo-helm
+  helm repo update
+  helm upgrade --install \
+    argocd argo/argo-cd \
+    -n argocd \
+    --create-namespace \
+    --version {{argocd_version}} \
+    --set server.ingress.hosts="{argo-cd.{{base_host}}}" \
+    --values argocd/helm-values.yaml \
+    --timeout 6m0s \
+    --wait
+  kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/argocd-apps/main/applicationset.yaml
+  kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/infrastructure/main/applicationset.yaml
+
+# Installs Kubevela
+kubevela:
+  helm repo add kubevela https://charts.kubevela.net/core
+  helm repo update
+  helm upgrade --install \
+    kubevela kubevela/vela-core \
+    -n vela-system \
+    --create-namespace \
+    --version {{kubevela_version}}
 
 # Installs Crossplane
 crossplane:
@@ -203,29 +241,6 @@ crossplane:
   ## Configure AWS Crossplane Provider
   kubectl apply -n crossplane-system -f crossplane/package.yaml
   kubectl apply -n crossplane-system -f crossplane/aws-provider-config.yaml
-
-## Installs Grafana
-grafana base_host=kind_base_domain: nginx
-  #!/usr/bin/env bash
-  kubectl create namespace grafana
-  rm grafana.env
-  echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> grafana.env
-  echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> grafana.env
-
-  kubectl create secret generic grafana-github -n grafana --from-env-file=grafana.env
-  kubectl apply -f grafana/grafana-datasources.yaml
-
-  helm repo add grafana https://grafana.github.io/helm-charts
-  helm repo update
-  helm upgrade --install \
-    grafana grafana/grafana \
-    -n grafana \
-    --create-namespace \
-    --set ingress.hosts="{grafana.{{base_host}}}" \
-    --set "grafana\.ini".server.root_url="https://grafana.{{base_host}}" \
-    --values grafana/helm-values.yaml \
-    --version {{grafana_version}} \
-    --wait
 
 # Installs Backstage
 backstage base_host=kind_base_domain:

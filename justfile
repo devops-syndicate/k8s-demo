@@ -2,7 +2,7 @@ kind_base_domain := '127.0.0.1.nip.io'
 argocd_version := '5.17.1'
 kubevela_version := '1.7.0'
 prometheus_version := '19.3.1'
-grafana_version := '2.7.15'
+grafana_version := '6.50.0'
 loki_version := '2.8.9'
 tempo_version := '0.16.8'
 crossplane_version := '1.10.1'
@@ -19,9 +19,9 @@ up:
   just start_kind
   just nginx
   just prometheus
-  just grafana
   just loki
   just tempo
+  just grafana
   just argocd
   just kubevela
   just crossplane
@@ -108,6 +108,7 @@ kubevela:
 # Installs NGINX Ingress Controller
 nginx:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
 
 # Installs Prometheus
 prometheus:
@@ -206,32 +207,25 @@ crossplane:
 ## Installs Grafana
 grafana base_host=kind_base_domain: nginx
   #!/usr/bin/env bash
-  kubectl create namespace grafana-operator
+  kubectl create namespace grafana
   rm grafana.env
   echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> grafana.env
   echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> grafana.env
-  echo "GF_AUTH_GITHUB_ROLE_ATTRIBUTE_PATH=contains(groups[*], '@devops-syndicate/admins') && 'Admin' || 'Editor'" >> grafana.env
 
-  kubectl create secret generic grafana -n grafana-operator --from-env-file=grafana.env
+  kubectl create secret generic grafana-github -n grafana --from-env-file=grafana.env
+  kubectl apply -f grafana/grafana-datasources.yaml
 
-  helm repo add bitnami https://charts.bitnami.com/bitnami
+  helm repo add grafana https://grafana.github.io/helm-charts
   helm repo update
   helm upgrade --install \
-    grafana-operator bitnami/grafana-operator \
-    -n grafana-operator \
+    grafana grafana/grafana \
+    -n grafana \
     --create-namespace \
-    --set grafana.ingress.hostname="grafana.{{base_host}}" \
-    --set grafana.config.server.root_url="https://grafana.{{base_host}}" \
-    --values grafana-operator/helm-values.yaml \
+    --set ingress.hosts="{grafana.{{base_host}}}" \
+    --set "grafana\.ini".server.root_url="https://grafana.{{base_host}}" \
+    --values grafana/helm-values.yaml \
     --version {{grafana_version}} \
     --wait
-  while : ; do
-    kubectl rollout -n grafana-operator status deployment grafana-deployment && break
-    sleep 2
-  done
-  kubectl apply -f grafana-operator/prometheus-datasource.yaml
-  kubectl apply -f grafana-operator/loki-datasource.yaml
-  kubectl apply -f grafana-operator/tempo-datasource.yaml
 
 # Installs Backstage
 backstage base_host=kind_base_domain:

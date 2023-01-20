@@ -1,5 +1,6 @@
 envFromSecret: grafana-github
 ingress:
+  ingressClassName: traefik
   enabled: true
 sidecar:
   datasources:

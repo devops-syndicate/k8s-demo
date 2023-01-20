@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_datasource: ""
+  name: loki-datasource
+  namespace: grafana
+data:
+  loki.yaml: |
+    apiVersion: 1
+    datasources:
+    - jsonData:
+        derivedFields:
+        - datasourceUid: tempo
+          matcherRegex: trace_id\":\"(\w+)\"
+          name: trace_id
+          url: $${__value.raw}
+      name: loki
+      type: loki
+      uid: loki
+      url: http://loki.loki:3100

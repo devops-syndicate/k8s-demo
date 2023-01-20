@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_datasource: ""
+  name: tempo-datasource
+  namespace: grafana
+data:
+  tempo.yaml: |
+    apiVersion: 1
+    datasources:
+    - jsonData:
+        tracesToLogs:
+          datasourceUid: loki
+          mappedTags: [{ key: 'service.name', value: 'app' }]
+          mapTagNamesEnabled: true
+          filterByTraceID: true
+      name: tempo
+      type: tempo
+      uid: tempo
+      url: http://tempo.tempo:3100

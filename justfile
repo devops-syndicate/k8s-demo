@@ -10,6 +10,7 @@ kyverno_version := '2.6.5'
 metacontroller_version := 'v4.7.3'
 cilium_version := 'v1.12.5'
 pyroscope_version := '0.2.86'
+traefik_version := '20.8.0'
 
 _default:
   @just -l
@@ -18,14 +19,14 @@ _default:
 up:
   just stop_kind
   just start_kind
-  just nginx
+  just ingress
+  just kubevela
+  just argocd
   just prometheus
   just loki
   just tempo
   just grafana
   just pyroscope
-  just argocd
-  just kubevela
   just crossplane
   just backstage
 
@@ -94,10 +95,18 @@ pyroscope base_host=kind_base_domain:
     --version {{pyroscope_version}} \
     --wait
 
-# Installs NGINX Ingress Controller
-nginx:
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
-  kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
+# Installs Ingress Controller
+ingress base_host=kind_base_domain:
+  helm repo add traefik https://traefik.github.io/charts
+  helm repo update
+  helm upgrade --install \
+    traefik traefik/traefik \
+    -n traefik \
+    --create-namespace \
+    --set 'ingressRoute.dashboard.matchRule="Host(`traefik.{{base_host}}`\, `localhost`) && PathPrefix(`/dashboard`\, `/api`)"' \
+    --values traefik/helm-values.yaml \
+    --version {{traefik_version}} \
+    --wait
 
 # Installs Prometheus
 prometheus:
@@ -108,6 +117,8 @@ prometheus:
     -n prometheus \
     --create-namespace \
     --version {{prometheus_version}}
+  kubectl create ns grafana || true
+  kubectl apply -f grafana/prometheus-datasource.yaml
 
 # Installs Loki
 loki:
@@ -118,6 +129,8 @@ loki:
     -n loki \
     --create-namespace \
     --version {{loki_version}}
+  kubectl create ns grafana || true
+  kubectl apply -f grafana/loki-datasource.yaml
 
 # Installs Tempo
 tempo:
@@ -129,17 +142,18 @@ tempo:
     --create-namespace \
     --set "tempo.searchEnabled=true" \
     --version {{tempo_version}}
+  kubectl create ns grafana || true
+  kubectl apply -f grafana/tempo-datasource.yaml
 
 ## Installs Grafana
-grafana base_host=kind_base_domain: nginx
+grafana base_host=kind_base_domain: ingress
   #!/usr/bin/env bash
-  kubectl create namespace grafana
   rm grafana.env
   echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> grafana.env
   echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> grafana.env
 
+  kubectl create ns grafana || true
   kubectl create secret generic grafana-github -n grafana --from-env-file=grafana.env
-  kubectl apply -f grafana/grafana-datasources.yaml
 
   helm repo add grafana https://grafana.github.io/helm-charts
   helm repo update

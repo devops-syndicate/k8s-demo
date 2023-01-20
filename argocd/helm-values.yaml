@@ -1,5 +1,6 @@
 server:
   ingress:
+    ingressClassName: traefik
     enabled: true
   extraArgs:
   - --insecure

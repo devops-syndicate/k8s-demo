@@ -5,6 +5,9 @@ logs:
     level: INFO
 service:
   type: NodePort
+tracing:
+  jaeger:
+    localAgentHostPort: tempo.tempo:6831
 ports:
   web:
     nodePort: 30000

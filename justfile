@@ -1,16 +1,18 @@
-kind_base_domain := '127.0.0.1.nip.io'
-argocd_version := '5.17.1'
-kubevela_version := '1.7.0'
-prometheus_version := '19.3.1'
-grafana_version := '6.50.0'
-loki_version := '2.8.9'
-tempo_version := '0.16.8'
-crossplane_version := '1.10.1'
-kyverno_version := '2.6.5'
-metacontroller_version := 'v4.7.3'
+base_host := '127.0.0.1.nip.io'
+
 cilium_version := 'v1.12.5'
-pyroscope_version := '0.2.86'
 traefik_version := '20.8.0'
+argo_rollouts_version := '2.22.1'
+metacontroller_version := 'v4.7.3'
+kyverno_version := '2.6.5'
+kubevela_version := '1.7.0'
+pyroscope_version := '0.2.86'
+prometheus_version := '19.3.1'
+loki_version := '2.8.9'
+tempo_version := '0.16.9'
+grafana_version := '6.50.1'
+argocd_version := '5.19.0'
+crossplane_version := '1.10.2'
 
 _default:
   @just -l
@@ -20,13 +22,16 @@ up:
   just stop_kind
   just start_kind
   just ingress
+  just rollouts
+  just metacontroller
+  just kyverno
   just kubevela
-  just argocd
+  just pyroscope
   just prometheus
   just loki
   just tempo
   just grafana
-  just pyroscope
+  just argocd
   just crossplane
   just backstage
 
@@ -63,6 +68,29 @@ cilium:
     --timeout 6m0s \
     --wait
 
+# Installs Ingress Controller
+ingress:
+  helm repo add traefik https://traefik.github.io/charts
+  helm repo update
+  helm upgrade --install \
+    traefik traefik/traefik \
+    -n traefik \
+    --create-namespace \
+    --set 'ingressRoute.dashboard.matchRule="Host(`traefik.{{base_host}}`\, `localhost`) && PathPrefix(`/dashboard`\, `/api`)"' \
+    --values traefik/helm-values.yaml \
+    --version {{traefik_version}} \
+    --wait
+
+# Installs Argo Rollouts
+rollouts:
+  helm repo add argo https://argoproj.github.io/argo-helm
+  helm repo update
+  helm upgrade --install \
+    argocd argo/argo-rollouts \
+    -n argo-rollouts \
+    --create-namespace \
+    --version {{argo_rollouts_version}}
+
 # Installs metacontroller
 metacontroller:
   helm pull oci://ghcr.io/metacontroller/metacontroller-helm --version={{metacontroller_version}}
@@ -82,8 +110,18 @@ kyverno:
     --create-namespace \
     --version {{kyverno_version}}
 
+# Installs Kubevela
+kubevela:
+  helm repo add kubevela https://charts.kubevela.net/core
+  helm repo update
+  helm upgrade --install \
+    kubevela kubevela/vela-core \
+    -n vela-system \
+    --create-namespace \
+    --version {{kubevela_version}}
+
 # Installs pyroscope
-pyroscope base_host=kind_base_domain:
+pyroscope:
   helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
   helm repo update
   helm upgrade --install \
@@ -92,21 +130,7 @@ pyroscope base_host=kind_base_domain:
     --create-namespace \
     --set-json ingress.hosts='[{"host":"pyroscope.{{base_host}}","paths":[{"path":"/","pathType":"Prefix"}]}]' \
     --values pyroscope/helm-values.yaml \
-    --version {{pyroscope_version}} \
-    --wait
-
-# Installs Ingress Controller
-ingress base_host=kind_base_domain:
-  helm repo add traefik https://traefik.github.io/charts
-  helm repo update
-  helm upgrade --install \
-    traefik traefik/traefik \
-    -n traefik \
-    --create-namespace \
-    --set 'ingressRoute.dashboard.matchRule="Host(`traefik.{{base_host}}`\, `localhost`) && PathPrefix(`/dashboard`\, `/api`)"' \
-    --values traefik/helm-values.yaml \
-    --version {{traefik_version}} \
-    --wait
+    --version {{pyroscope_version}}
 
 # Installs Prometheus
 prometheus:
@@ -146,7 +170,7 @@ tempo:
   kubectl apply -f grafana/tempo-datasource.yaml
 
 ## Installs Grafana
-grafana base_host=kind_base_domain: ingress
+grafana:
   #!/usr/bin/env bash
   rm grafana.env
   echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> grafana.env
@@ -168,7 +192,7 @@ grafana base_host=kind_base_domain: ingress
     --wait
 
 # Installs ArgoCD
-argocd base_host=kind_base_domain:
+argocd:
   helm repo add argo https://argoproj.github.io/argo-helm
   helm repo update
   helm upgrade --install \
@@ -182,16 +206,6 @@ argocd base_host=kind_base_domain:
     --wait
   kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/argocd-apps/main/applicationset.yaml
   kubectl apply -n argocd -f https://raw.githubusercontent.com/devops-syndicate/infrastructure/main/applicationset.yaml
-
-# Installs Kubevela
-kubevela:
-  helm repo add kubevela https://charts.kubevela.net/core
-  helm repo update
-  helm upgrade --install \
-    kubevela kubevela/vela-core \
-    -n vela-system \
-    --create-namespace \
-    --version {{kubevela_version}}
 
 # Installs Crossplane
 crossplane:
@@ -257,7 +271,7 @@ crossplane:
   kubectl apply -n crossplane-system -f crossplane/aws-provider-config.yaml
 
 # Installs Backstage
-backstage base_host=kind_base_domain:
+backstage:
   #!/usr/bin/env bash
   kubectl create namespace backstage
   rm backstage.env

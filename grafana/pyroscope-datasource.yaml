@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_datasource: ""
+  name: pyroscope-datasource
+  namespace: grafana
+data:
+  pyroscope.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: pyroscope
+      type: pyroscope-datasource
+      uid: pyroscope
+      jsonData:
+        path: http://pyroscope.pyroscope:4040

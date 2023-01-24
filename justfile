@@ -19,6 +19,7 @@ _default:
 
 ## Starts KIND cluster and installs all apps
 up:
+  just helm_repos
   just stop_kind
   just start_kind
   just ingress
@@ -35,6 +36,23 @@ up:
   just crossplane
   just backstage
 
+# Adds all needed repos to helm
+helm_repos:
+  helm repo add cilium https://helm.cilium.io/
+  helm repo add traefik https://traefik.github.io/charts
+  helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
+  helm repo add argo https://argoproj.github.io/argo-helm
+  helm repo add kyverno https://kyverno.github.io/kyverno/
+  helm repo add kubevela https://charts.kubevela.net/core
+  helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
+  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo add grafana https://grafana.github.io/helm-charts
+  helm repo add argo https://argoproj.github.io/argo-helm
+  helm repo add crossplane-stable https://charts.crossplane.io/stable
+  helm repo update
+
 # Stops KIND cluster
 down:
   just stop_kind
@@ -50,8 +68,6 @@ start_kind:
 
 # Installs cilium
 cilium:
-  helm repo add cilium https://helm.cilium.io/
-  helm repo update
   helm upgrade --install \
     cilium cilium/cilium \
     -n kube-system \
@@ -70,8 +86,6 @@ cilium:
 
 # Installs Ingress Controller
 ingress:
-  helm repo add traefik https://traefik.github.io/charts
-  helm repo update
   helm upgrade --install \
     traefik traefik/traefik \
     -n traefik \
@@ -83,8 +97,6 @@ ingress:
 
 # Installs Argo Rollouts
 rollouts:
-  helm repo add argo https://argoproj.github.io/argo-helm
-  helm repo update
   helm upgrade --install \
     argocd argo/argo-rollouts \
     -n argo-rollouts \
@@ -102,8 +114,6 @@ metacontroller:
 
 # Installs kyverno
 kyverno:
-  helm repo add kyverno https://kyverno.github.io/kyverno/
-  helm repo update
   helm upgrade --install \
     kyverno kyverno/kyverno \
     -n kyverno \
@@ -112,8 +122,6 @@ kyverno:
 
 # Installs Kubevela
 kubevela:
-  helm repo add kubevela https://charts.kubevela.net/core
-  helm repo update
   helm upgrade --install \
     kubevela kubevela/vela-core \
     -n vela-system \
@@ -122,8 +130,6 @@ kubevela:
 
 # Installs pyroscope
 pyroscope:
-  helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
-  helm repo update
   helm upgrade --install \
     pyroscope pyroscope-io/pyroscope \
     -n pyroscope \
@@ -131,11 +137,11 @@ pyroscope:
     --set-json ingress.hosts='[{"host":"pyroscope.{{base_host}}","paths":[{"path":"/","pathType":"Prefix"}]}]' \
     --values pyroscope/helm-values.yaml \
     --version {{pyroscope_version}}
+  kubectl create ns grafana || true
+  kubectl apply -f grafana/pyroscope-datasource.yaml
 
 # Installs Prometheus
 prometheus:
-  helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-  helm repo update
   helm upgrade --install \
     prometheus prometheus-community/prometheus \
     -n prometheus \
@@ -146,8 +152,6 @@ prometheus:
 
 # Installs Loki
 loki:
-  helm repo add grafana https://grafana.github.io/helm-charts
-  helm repo update
   helm upgrade --install \
     loki grafana/loki-stack \
     -n loki \
@@ -158,8 +162,6 @@ loki:
 
 # Installs Tempo
 tempo:
-  helm repo add grafana https://grafana.github.io/helm-charts
-  helm repo update
   helm upgrade --install \
     tempo grafana/tempo \
     -n tempo \
@@ -179,8 +181,6 @@ grafana:
   kubectl create ns grafana || true
   kubectl create secret generic grafana-github -n grafana --from-env-file=grafana.env
 
-  helm repo add grafana https://grafana.github.io/helm-charts
-  helm repo update
   helm upgrade --install \
     grafana grafana/grafana \
     -n grafana \
@@ -193,8 +193,6 @@ grafana:
 
 # Installs ArgoCD
 argocd:
-  helm repo add argo https://argoproj.github.io/argo-helm
-  helm repo update
   helm upgrade --install \
     argocd argo/argo-cd \
     -n argocd \
@@ -211,8 +209,6 @@ argocd:
 crossplane:
   #!/usr/bin/env bash
   set -euxo pipefail
-  helm repo add crossplane-stable https://charts.crossplane.io/stable
-  helm repo update
 
   helm upgrade --install \
     crossplane crossplane-stable/crossplane \
@@ -273,7 +269,7 @@ crossplane:
 # Installs Backstage
 backstage:
   #!/usr/bin/env bash
-  kubectl create namespace backstage
+  kubectl create ns backstage
   rm backstage.env
   echo "POSTGRES_HOST=backstage-db" >> backstage.env
   echo "POSTGRES_PORT=5432" >> backstage.env

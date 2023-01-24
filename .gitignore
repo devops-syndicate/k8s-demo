@@ -4,3 +4,4 @@ creds.conf
 github-credentials.yaml
 grafana.env
 *.tgz
+sealed-secrets.*

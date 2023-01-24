@@ -2,6 +2,7 @@ base_host := '127.0.0.1.nip.io'
 
 cilium_version := 'v1.12.5'
 traefik_version := '20.8.0'
+sealed_secrets_version := '2.7.3'
 argo_rollouts_version := '2.22.1'
 metacontroller_version := 'v4.7.3'
 kyverno_version := '2.6.5'
@@ -23,6 +24,7 @@ up:
   just stop_kind
   just start_kind
   just ingress
+  just sealed_secrets
   just rollouts
   just metacontroller
   just kyverno
@@ -94,6 +96,22 @@ ingress:
     --values traefik/helm-values.yaml \
     --version {{traefik_version}} \
     --wait
+
+# Installs Sealed Secrets
+sealed_secrets:
+  kubectl delete secret -n kube-system sealed-secrets || true
+  echo "$SEALED_SECRETS_KEY" > sealed-secrets.key
+  echo "$SEALED_SECRETS_CRT" > sealed-secrets.crt
+  kubectl create secret tls sealed-secrets -n kube-system \
+    --key=sealed-secrets.key \
+    --cert=sealed-secrets.crt
+  rm sealed-secrets.*
+  helm upgrade --install \
+    sealed-secrets sealed-secrets/sealed-secrets \
+    -n kube-system \
+    --set "secretName=sealed-secrets" \
+    --set "fullnameOverride=sealed-secrets-controller" \
+    --version {{sealed_secrets_version}}
 
 # Installs Argo Rollouts
 rollouts:

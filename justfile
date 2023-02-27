@@ -1,19 +1,19 @@
 base_host := '127.0.0.1.nip.io'
 
-cilium_version := 'v1.12.5'
-traefik_version := '20.8.0'
-sealed_secrets_version := '2.7.3'
-argo_rollouts_version := '2.22.1'
-metacontroller_version := 'v4.7.3'
-kyverno_version := '2.6.5'
-kubevela_version := '1.7.0'
-pyroscope_version := '0.2.86'
-prometheus_version := '19.3.1'
-loki_version := '2.8.9'
-tempo_version := '0.16.9'
-grafana_version := '6.50.1'
-argocd_version := '5.19.0'
-crossplane_version := '1.10.2'
+cilium_version := 'v1.13.0'
+traefik_version := '21.1.0'
+sealed_secrets_version := '2.7.4'
+argo_rollouts_version := '2.22.2'
+metacontroller_version := 'v4.7.8'
+kyverno_version := '2.7.0'
+kubevela_version := '1.7.5'
+pyroscope_version := '0.2.92'
+prometheus_version := '19.6.1'
+loki_version := '2.9.9'
+tempo_version := '1.0.0'
+grafana_version := '6.51.1'
+argocd_version := '5.23.2'
+crossplane_version := '1.11.1'
 
 _default:
   @just -l
@@ -233,7 +233,7 @@ crossplane:
     -n crossplane-system \
     --create-namespace \
     --version {{crossplane_version}} \
-    --set "provider.packages={crossplane/provider-aws:v0.32.0,crossplane/provider-helm:v0.11.1,crossplane/provider-kubernetes:v0.4.1}" \
+    --set "provider.packages={xpkg.upbound.io/crossplane-contrib/provider-aws:v0.33.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.13.0,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.6.0}" \
     --wait
 
   while : ; do
@@ -275,7 +275,7 @@ crossplane:
   aws_access_key_id=$(aws configure get aws_access_key_id --profile $AWS_PROFILE)
   aws_secret_access_key=$(aws configure get aws_secret_access_key --profile $AWS_PROFILE)" > creds.conf
 
-  kubectl create secret generic aws-creds -n crossplane-system --from-file=creds=./creds.conf
+  kubectl create secret generic aws-creds -n crossplane-system --from-file=creds=./creds.conf || true
   rm creds.conf
 
   kubectl wait --for condition=established --timeout=60s crd/compositeresourcedefinitions.apiextensions.crossplane.io crd/compositions.apiextensions.crossplane.io crd/providerconfigs.aws.crossplane.io

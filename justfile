@@ -1,7 +1,6 @@
 base_host := '127.0.0.1.nip.io'
 
 cilium_version := 'v1.13.0'
-traefik_version := '21.1.0'
 sealed_secrets_version := '2.7.4'
 argo_rollouts_version := '2.22.2'
 metacontroller_version := 'v4.7.8'
@@ -41,7 +40,6 @@ up:
 # Adds all needed repos to helm
 helm_repos:
   helm repo add cilium https://helm.cilium.io/
-  helm repo add traefik https://traefik.github.io/charts
   helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
   helm repo add argo https://argoproj.github.io/argo-helm
   helm repo add kyverno https://kyverno.github.io/kyverno/
@@ -88,14 +86,8 @@ cilium:
 
 # Installs Ingress Controller
 ingress:
-  helm upgrade --install \
-    traefik traefik/traefik \
-    -n traefik \
-    --create-namespace \
-    --set 'ingressRoute.dashboard.matchRule="Host(`traefik.{{base_host}}`\, `localhost`) && PathPrefix(`/dashboard`\, `/api`)"' \
-    --values traefik/helm-values.yaml \
-    --version {{traefik_version}} \
-    --wait
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+  kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
 
 # Installs Sealed Secrets
 sealed_secrets:

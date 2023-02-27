@@ -1,7 +1,6 @@
 plugins: ["pyroscope-datasource", "pyroscope-panel"]
 envFromSecret: grafana-github
 ingress:
-  ingressClassName: traefik
   enabled: true
 sidecar:
   datasources:

@@ -147,7 +147,6 @@ metadata:
   name: backstage
   namespace: backstage
 spec:
-  ingressClassName: traefik
   rules:
   - host: backstage.BASE_DOMAIN_VALUE
     http:

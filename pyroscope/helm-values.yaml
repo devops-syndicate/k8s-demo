@@ -1,3 +1,2 @@
 ingress:
-  className: traefik
   enabled: true

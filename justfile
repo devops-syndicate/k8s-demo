@@ -80,6 +80,9 @@ cilium:
     --set ipam.mode=kubernetes \
     --set hubble.relay.enabled=true \
     --set hubble.ui.enabled=true \
+    --set prometheus.enabled=true \
+    --set operator.prometheus.enabled=true \
+    --set hubble.metrics.enabled="{dns,drop,tcp,flow,icmp,http}" \
     --version {{cilium_version}} \
     --timeout 6m0s \
     --wait

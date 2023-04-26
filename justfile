@@ -201,8 +201,7 @@ grafana:
     --set ingress.hosts="{grafana.{{base_host}}}" \
     --set "grafana\.ini".server.root_url="https://grafana.{{base_host}}" \
     --values grafana/helm-values.yaml \
-    --version {{grafana_version}} \
-    --wait
+    --version {{grafana_version}}
 
 # Installs ArgoCD
 argocd:

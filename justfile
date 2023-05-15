@@ -1,18 +1,18 @@
 base_host := '127.0.0.1.nip.io'
 
-cilium_version := 'v1.13.1'
-sealed_secrets_version := '2.8.1'
-argo_rollouts_version := '2.25.0'
-metacontroller_version := 'v4.10.1'
+cilium_version := 'v1.13.2'
+sealed_secrets_version := '2.8.2'
+argo_rollouts_version := '2.26.0'
+metacontroller_version := 'v4.10.2'
 kyverno_version := '2.7.2'
-kubevela_version := '1.7.7'
+kubevela_version := '1.8.0'
 pyroscope_version := '0.2.92'
-prometheus_version := '20.2.0'
+prometheus_version := '21.0.1'
 loki_version := '2.9.10'
 tempo_version := '1.1.0'
-grafana_version := '6.52.9'
+grafana_version := '6.55.1'
 argocd_version := '5.29.1'
-crossplane_version := '1.11.3'
+crossplane_version := '1.12.0'
 
 _default:
   @just -l

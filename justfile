@@ -3,6 +3,7 @@ base_host := '127.0.0.1.nip.io'
 cilium_version := 'v1.13.2'
 sealed_secrets_version := '2.8.2'
 argo_rollouts_version := '2.26.0'
+kubeclarity_version := 'v2.18.1'
 metacontroller_version := 'v4.10.2'
 kyverno_version := '2.7.2'
 kubevela_version := '1.8.0'
@@ -115,6 +116,16 @@ rollouts:
     -n argo-rollouts \
     --create-namespace \
     --version {{argo_rollouts_version}}
+
+# Installs Kubeclarity
+kubeclarity:
+  helm upgrade --install \
+    kubeclarity kubeclarity/kubeclarity \
+    -n kubeclarity \
+    --set-json kubeclarity.ingress.hosts='[{"host":"kubeclarity.{{base_host}}","paths":[{"path":"/","pathType":"Prefix"}]}]' \
+    --values kubeclarity/helm-values.yaml \
+    --create-namespace \
+    --version {{kubeclarity_version}}
 
 # Installs metacontroller
 metacontroller:

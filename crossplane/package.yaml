@@ -1,22 +1,17 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: CompositeResourceDefinition
 metadata:
-  name: xpostgresqlinstances.database.example.org
+  name: xpostgresqlinstances.database.devopssyndicate.github.io
 spec:
-  group: database.example.org
+  group: database.devopssyndicate.github.io
   names:
     kind: XPostgreSQLInstance
     plural: xpostgresqlinstances
   defaultCompositionRef:
-    name: xpostgresqlinstances.aws.database.example.org
+    name: xpostgresqlinstances.aws.database.devopssyndicate.github.io
   claimNames:
     kind: PostgreSQLInstance
     plural: postgresqlinstances
-  connectionSecretKeys:
-  - username
-  - password
-  - endpoint
-  - port
   versions:
   - name: v1alpha1
     served: true
@@ -33,36 +28,48 @@ spec:
                 properties:
                   storageGB:
                     type: integer
+                  passwordSecretRef:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                    - key
+                    - name
+                    - namespace
                 required:
                 - storageGB
+                - passwordSecretRef
             required:
             - parameters
 ---
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: xpostgresqlinstances.aws.database.example.org
+  name: xpostgresqlinstances.aws.database.devopssyndicate.github.io
   labels:
     provider: aws
 spec:
   writeConnectionSecretsToNamespace: crossplane-system
   compositeTypeRef:
-    apiVersion: database.example.org/v1alpha1
+    apiVersion: database.devopssyndicate.github.io/v1alpha1
     kind: XPostgreSQLInstance
   resources:
   - name: rdsinstance
     base:
-      apiVersion: database.aws.crossplane.io/v1beta1
-      kind: RDSInstance
+      apiVersion: rds.aws.upbound.io/v1beta1
+      kind: Instance
       spec:
         forProvider:
           region: eu-central-1
-          dbInstanceClass: db.t2.small
-          masterUsername: masteruser
+          instanceClass: db.t2.small
           engine: postgres
-          engineVersion: "12"
-          skipFinalSnapshotBeforeDeletion: true
-          publiclyAccessible: true
+          engineVersion: "15.3"
+          skipFinalSnapshot: true
         writeConnectionSecretToRef:
           namespace: crossplane-system
     patches:
@@ -74,8 +81,5 @@ spec:
           fmt: "%s-db"
     - fromFieldPath: "spec.parameters.storageGB"
       toFieldPath: "spec.forProvider.allocatedStorage"
-    connectionDetails:
-    - fromConnectionSecretKey: username
-    - fromConnectionSecretKey: password
-    - fromConnectionSecretKey: endpoint
-    - fromConnectionSecretKey: port
+    - fromFieldPath: "spec.parameters.passwordSecretRef"
+      toFieldPath: "spec.forProvider.passwordSecretRef"

@@ -1,19 +1,19 @@
 base_host := '127.0.0.1.nip.io'
 
-cilium_version := 'v1.13.2'
-sealed_secrets_version := '2.8.2'
-argo_rollouts_version := '2.26.0'
-kubeclarity_version := 'v2.18.1'
-metacontroller_version := 'v4.10.2'
-kyverno_version := '2.7.2'
-kubevela_version := '1.8.0'
+cilium_version := 'v1.13.4'
+sealed_secrets_version := '2.11.0'
+argo_rollouts_version := '2.31.1'
+kubeclarity_version := 'v2.19.10j'
+metacontroller_version := 'v4.10.4'
+kyverno_version := '3.0.2'
+kubevela_version := '1.9.4'
 pyroscope_version := '0.2.92'
-prometheus_version := '21.0.1'
+prometheus_version := '23.1.0'
 loki_version := '2.9.10'
-tempo_version := '1.1.0'
-grafana_version := '6.55.1'
-argocd_version := '5.29.1'
-crossplane_version := '1.12.0'
+tempo_version := '1.3.1'
+grafana_version := '6.58.4'
+argocd_version := '5.41.1'
+crossplane_version := '1.12.2'
 
 _default:
   @just -l
@@ -44,7 +44,7 @@ helm_repos:
   helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
   helm repo add argo https://argoproj.github.io/argo-helm
   helm repo add kyverno https://kyverno.github.io/kyverno/
-  helm repo add kubevela https://charts.kubevela.net/core
+  helm repo add kubevela https://kubevela.github.io/charts
   helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
   helm repo add grafana https://grafana.github.io/helm-charts
@@ -238,7 +238,7 @@ crossplane:
     -n crossplane-system \
     --create-namespace \
     --version {{crossplane_version}} \
-    --set "provider.packages={xpkg.upbound.io/crossplane-contrib/provider-aws:v0.33.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.13.0,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.6.0}" \
+    --set "provider.packages={xpkg.upbound.io/upbound/provider-family-aws:v0.37.0,xpkg.upbound.io/upbound/provider-aws-rds:v0.37.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.15.0,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.9.0}" \
     --wait
 
   while : ; do
@@ -270,7 +270,7 @@ crossplane:
   while : ; do
     kubectl wait -n crossplane-system \
       --for=condition=ready pod \
-      --selector=pkg.crossplane.io/provider=provider-aws \
+      --selector=pkg.crossplane.io/provider=provider-aws-rds \
       --timeout=3m0s && break
     sleep 20
   done
@@ -283,7 +283,7 @@ crossplane:
   kubectl create secret generic aws-creds -n crossplane-system --from-file=creds=./creds.conf || true
   rm creds.conf
 
-  kubectl wait --for condition=established --timeout=60s crd/compositeresourcedefinitions.apiextensions.crossplane.io crd/compositions.apiextensions.crossplane.io crd/providerconfigs.aws.crossplane.io
+  kubectl wait --for condition=established --timeout=60s crd/compositeresourcedefinitions.apiextensions.crossplane.io crd/compositions.apiextensions.crossplane.io crd/providerconfigs.aws.upbound.io
 
   ## Configure AWS Crossplane Provider
   kubectl apply -n crossplane-system -f crossplane/package.yaml

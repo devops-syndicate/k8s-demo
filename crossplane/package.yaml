@@ -65,11 +65,13 @@ spec:
       kind: Instance
       spec:
         forProvider:
-          region: eu-central-1
-          instanceClass: db.t2.small
+          autoGeneratePassword: true
           engine: postgres
-          engineVersion: "15.3"
+          engineVersion: "14.7"
+          instanceClass: db.t3.micro
+          region: eu-central-1
           skipFinalSnapshot: true
+          username: adminuser
         writeConnectionSecretToRef:
           namespace: crossplane-system
     patches:

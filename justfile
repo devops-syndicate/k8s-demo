@@ -1,7 +1,6 @@
 base_host := '127.0.0.1.nip.io'
 
 cilium_version := 'v1.13.4'
-metrics_server_version := '3.11.0'
 sealed_secrets_version := '2.11.0'
 argo_rollouts_version := '2.31.1'
 kubeclarity_version := 'v2.19.10j'
@@ -53,8 +52,6 @@ helm_repos:
   helm repo add pyroscope-io https://pyroscope-io.github.io/helm-chart
   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
   helm repo add grafana https://grafana.github.io/helm-charts
-  helm repo add grafana https://grafana.github.io/helm-charts
-  helm repo add grafana https://grafana.github.io/helm-charts
   helm repo add argo https://argoproj.github.io/argo-helm
   helm repo add crossplane-stable https://charts.crossplane.io/stable
   helm repo add cnpg https://cloudnative-pg.github.io/charts
@@ -98,14 +95,6 @@ cilium:
 ingress:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
   kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
-
-metrics_server:
-  helm upgrade --install \
-  metrics-server metrics-server/metrics-server \
-  -n kube-system \
-  --set "args={'--kubelet-insecure-tls'}" \
-  --set "metrics.enabled=true" \
-  --version {{metrics_server_version}}
 
 # Installs Cloudnative Postgres
 cnpg:

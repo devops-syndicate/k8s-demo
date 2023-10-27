@@ -5,3 +5,4 @@ github-credentials.yaml
 grafana.env
 *.tgz
 sealed-secrets.*
+examples/

@@ -3,12 +3,12 @@ base_host := '127.0.0.1.nip.io'
 cilium_version := 'v1.13.4'
 sealed_secrets_version := '2.11.0'
 argo_rollouts_version := '2.31.1'
-kubeclarity_version := 'v2.19.10j'
+kubeclarity_version := 'v2.21.1'
 metacontroller_version := 'v4.10.4'
 kyverno_version := '3.0.2'
 kubevela_version := '1.9.4'
 pyroscope_version := '0.2.92'
-prometheus_version := '23.1.0'
+kube_prometheus_stack_version := '51.3.0'
 loki_version := '2.9.10'
 tempo_version := '1.3.1'
 grafana_version := '6.58.4'
@@ -18,6 +18,18 @@ cnpg_version := '0.18.2'
 
 _default:
   @just -l
+
+## Deploys in a single node cluster
+single:
+  just helm_repos
+  just ingress_single
+  just kubevela
+  just prometheus
+  just loki
+  just tempo
+  just grafana
+  just argocd
+  just backstage
 
 ## Starts KIND cluster and installs all apps
 up:
@@ -90,6 +102,12 @@ cilium:
     --version {{cilium_version}} \
     --timeout 6m0s \
     --wait
+
+# Installs Ingress Controller for single node
+ingress_single:
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+  kubectl patch deployment ingress-nginx-controller -n ingress-nginx --type JSON --patch-file ./ingress/single_ingress_deployment_patch.yaml
+  kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
 
 # Installs Ingress Controller
 ingress:
@@ -178,10 +196,11 @@ pyroscope:
 # Installs Prometheus
 prometheus:
   helm upgrade --install \
-    prometheus prometheus-community/prometheus \
+    kube-prometheus-stack prometheus-community/kube-prometheus-stack \
     -n prometheus \
     --create-namespace \
-    --version {{prometheus_version}}
+    --values kubeprometheusstack/helm-values.yaml \
+    --version {{kube_prometheus_stack_version}}
   kubectl create ns grafana || true
   kubectl apply -f grafana/prometheus-datasource.yaml
 
@@ -313,7 +332,7 @@ backstage:
   echo "Generate token for backstage"
   argocd login argo-cd.{{base_host}} --name local --username admin --password admin --insecure --grpc-web-root-path /
   AUTH_TOKEN=$(yq eval '.users[0].auth-token' ~/.config/argocd/config)
-  argocd account generate-token --account backstage --id backstage --auth-token ${AUTH_TOKEN} | sed -e 's/^/ARGOCD_AUTH_TOKEN=/' >> backstage.env
+  argocd --server argo-cd.{{base_host}} account generate-token --account backstage --id backstage --auth-token ${AUTH_TOKEN} | sed -e 's/^/ARGOCD_AUTH_TOKEN=/' >> backstage.env
 
   kubectl create secret generic backstage -n backstage --from-env-file=backstage.env
 

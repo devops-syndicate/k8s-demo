@@ -8,7 +8,7 @@ metacontroller_version := 'v4.10.4'
 kyverno_version := '3.0.2'
 kubevela_version := '1.9.4'
 pyroscope_version := '0.2.92'
-kube_prometheus_stack_version := '51.3.0'
+prometheus_version := '23.1.0'
 loki_version := '2.9.10'
 tempo_version := '1.3.1'
 grafana_version := '6.58.4'
@@ -196,11 +196,10 @@ pyroscope:
 # Installs Prometheus
 prometheus:
   helm upgrade --install \
-    kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+    prometheus prometheus-community/prometheus \
     -n prometheus \
     --create-namespace \
-    --values kubeprometheusstack/helm-values.yaml \
-    --version {{kube_prometheus_stack_version}}
+    --version {{prometheus_version}}
   kubectl create ns grafana || true
   kubectl apply -f grafana/prometheus-datasource.yaml
 

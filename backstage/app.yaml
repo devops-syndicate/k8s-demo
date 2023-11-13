@@ -1,3 +1,67 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: backstage-read-only
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - pods
+  - configmaps
+  - services
+  - deployments
+  - replicasets
+  - replicationcontrollers
+  - events
+  - horizontalpodautoscalers
+  - ingresses
+  - ingressclasses
+  - statefulsets
+  - limitranges
+  - resourcequotas
+  - daemonsets
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backstage
+  namespace: backstage
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: backstage
+subjects:
+- kind: ServiceAccount
+  name: backstage
+  apiGroup: ""
+  namespace: backstage
+roleRef:
+  kind: ClusterRole
+  name: backstage-read-only
+  apiGroup: ""
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -105,6 +169,7 @@ spec:
       labels:
         app: backstage
     spec:
+      serviceAccountName: backstage
       containers:
       - name: backstage
         image: sselzer/backstage:1.0.0
@@ -158,3 +223,4 @@ spec:
               number: 80
         path: /
         pathType: Prefix
+---

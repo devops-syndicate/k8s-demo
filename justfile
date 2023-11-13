@@ -21,23 +21,19 @@ _default:
 
 ## Deploys in a single node cluster
 single:
-  just helm_repos
   just ingress_single
-  just kubevela
-  just prometheus
-  just loki
-  just tempo
-  just grafana
-  just argocd
-  just backstage
+  just install
 
 ## Starts KIND cluster and installs all apps
 up:
-  just helm_repos
   just stop_kind
   just start_kind
   just ingress
-  just metrics_server
+  just install
+
+## Installs all apps
+install:
+  just helm_repos
   just cnpg
   just sealed_secrets
   just rollouts

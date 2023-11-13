@@ -1,3 +1,7 @@
+global:
+  nodeSelector:
+    kubernetes.io/os: linux
+    kubernetes.io/arch: arm64
 kubeclarity:
   ingress:
     enabled: true

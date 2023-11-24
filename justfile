@@ -7,7 +7,7 @@ kubeclarity_version := 'v2.21.1'
 metacontroller_version := 'v4.10.4'
 kyverno_version := '3.0.2'
 kubevela_version := '1.9.4'
-pyroscope_version := '0.2.92'
+pyroscope_version := '1.3.0'
 prometheus_version := '23.1.0'
 loki_version := '2.9.10'
 tempo_version := '1.3.1'
@@ -186,11 +186,9 @@ kubevela:
 # Installs pyroscope
 pyroscope:
   helm upgrade --install \
-    pyroscope pyroscope-io/pyroscope \
+    pyroscope grafana/pyroscope \
     -n pyroscope \
     --create-namespace \
-    --set-json ingress.hosts='[{"host":"pyroscope.{{base_host}}","paths":[{"path":"/","pathType":"Prefix"}]}]' \
-    --values pyroscope/helm-values.yaml \
     --version {{pyroscope_version}}
   kubectl create ns grafana || true
   kubectl apply -f grafana/pyroscope-datasource.yaml

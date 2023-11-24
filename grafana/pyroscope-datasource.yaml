@@ -10,7 +10,6 @@ data:
     apiVersion: 1
     datasources:
     - name: pyroscope
-      type: pyroscope-datasource
+      type: grafana-pyroscope-datasource
       uid: pyroscope
-      jsonData:
-        path: http://pyroscope.pyroscope:4040
+      url: http://pyroscope.pyroscope:4040

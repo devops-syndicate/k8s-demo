@@ -1,5 +1,6 @@
-plugins: ["pyroscope-datasource", "pyroscope-panel"]
 envFromSecret: grafana-github
+env:
+  GF_FEATURE_TOGGLES_ENABLE: flameGraph
 ingress:
   enabled: true
 sidecar:

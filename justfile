@@ -1,20 +1,20 @@
 base_host := '127.0.0.1.nip.io'
 
-cilium_version := 'v1.13.4'
-sealed_secrets_version := '2.11.0'
-argo_rollouts_version := '2.31.1'
-kubeclarity_version := 'v2.21.1'
-metacontroller_version := 'v4.10.4'
-kyverno_version := '3.0.2'
-kubevela_version := '1.9.4'
+cilium_version := 'v1.14.4'
+sealed_secrets_version := '2.13.3'
+argo_rollouts_version := '2.32.4'
+kubeclarity_version := 'v2.22.0'
+metacontroller_version := 'v4.11.5'
+kyverno_version := '3.1.0'
+kubevela_version := '1.9.7'
 pyroscope_version := '1.3.0'
-prometheus_version := '23.1.0'
-loki_version := '2.9.10'
-tempo_version := '1.3.1'
+prometheus_version := '25.8.0'
+loki_version := '2.9.11'
+tempo_version := '1.7.1'
 grafana_version := '7.0.8'
-argocd_version := '5.41.1'
-crossplane_version := '1.12.2'
-cnpg_version := '0.18.2'
+argocd_version := '5.51.4'
+crossplane_version := '1.14.3'
+cnpg_version := '0.19.1'
 dashboard_version := 'v2.7.0'
 
 _default:
@@ -267,7 +267,7 @@ crossplane:
     -n crossplane-system \
     --create-namespace \
     --version {{crossplane_version}} \
-    --set "provider.packages={xpkg.upbound.io/upbound/provider-family-aws:v0.37.0,xpkg.upbound.io/upbound/provider-aws-rds:v0.37.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.15.0,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.9.0}" \
+    --set "provider.packages={xpkg.upbound.io/upbound/provider-family-aws:v0.44.0,xpkg.upbound.io/upbound/provider-aws-rds:v0.44.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.15.0,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.9.0}" \
     --wait
 
   while : ; do

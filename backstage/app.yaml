@@ -21,6 +21,7 @@ rules:
   - resourcequotas
   - daemonsets
   - namespaces
+  - customresourcedefinitions
   verbs:
   - get
   - list

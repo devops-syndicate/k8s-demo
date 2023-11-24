@@ -15,6 +15,7 @@ grafana_version := '6.58.4'
 argocd_version := '5.41.1'
 crossplane_version := '1.12.2'
 cnpg_version := '0.18.2'
+dashboard_version := 'v2.7.0'
 
 _default:
   @just -l
@@ -34,6 +35,7 @@ up:
 ## Installs all apps
 install:
   just helm_repos
+  just dashboard
   just cnpg
   just sealed_secrets
   just rollouts
@@ -109,6 +111,10 @@ ingress_single:
 ingress:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
   kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
+
+# Installs Kubernetes dashboard
+dashboard:
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/{{dashboard_version}}/aio/deploy/recommended.yaml
 
 # Installs Cloudnative Postgres
 cnpg:

@@ -15,6 +15,7 @@ grafana_version := '7.0.8'
 argocd_version := '5.51.4'
 crossplane_version := '1.14.3'
 cnpg_version := '0.19.1'
+metrics_server_version := '3.11.0'
 dashboard_version := 'v2.7.0'
 
 _default:
@@ -34,6 +35,7 @@ up:
 
 ## Installs all apps
 install:
+  just metrics_server
   just helm_repos
   just dashboard
   just cnpg
@@ -123,6 +125,15 @@ cnpg:
   -n cnpg-system \
   --create-namespace \
   --version {{cnpg_version}}
+
+# Installs metrics server
+metrics_server:
+  helm upgrade --install \
+  metrics-server metrics-server/metrics-server \
+  -n metrics-server \
+  --create-namespace \
+  --set "args={'--kubelet-insecure-tls','--kubelet-preferred-address-types=InternalIP'}" \
+  --version {{metrics_server_version}}
 
 # Installs Sealed Secrets
 sealed_secrets:

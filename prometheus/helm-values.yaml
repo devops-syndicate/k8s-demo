@@ -1,0 +1,3 @@
+server:
+  remoteWrite:
+  - url: http://mimir-nginx.mimir:80/api/v1/push

@@ -3,13 +3,14 @@ kind: ConfigMap
 metadata:
   labels:
     grafana_datasource: ""
-  name: prometheus-datasource
+  name: mimir-datasource
   namespace: grafana
 data:
-  prometheus.yaml: |
+  mimir.yaml: |
     apiVersion: 1
     datasources:
-    - name: prometheus
+    - isDefault: true
+      name: mimir
       type: prometheus
-      uid: prometheus
-      url: http://prometheus-server.prometheus
+      uid: mimir
+      url: http://mimir-nginx.mimir:80/prometheus

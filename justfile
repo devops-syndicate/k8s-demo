@@ -11,6 +11,7 @@ pyroscope_version := '1.3.0'
 prometheus_version := '25.8.0'
 loki_version := '2.9.11'
 tempo_version := '1.7.1'
+mimir_version := '5.3.0'
 grafana_version := '7.0.8'
 argocd_version := '5.51.4'
 crossplane_version := '1.14.3'
@@ -45,10 +46,11 @@ install:
   just kyverno
   just kubevela
   just pyroscope
-  just prometheus
+  just mimir
   just loki
   just tempo
   just grafana
+  just prometheus
   just argocd
   just crossplane
   just backstage
@@ -204,15 +206,15 @@ pyroscope:
   kubectl create ns grafana || true
   kubectl apply -f grafana/pyroscope-datasource.yaml
 
-# Installs Prometheus
-prometheus:
+# Installs mimir
+mimir:
   helm upgrade --install \
-    prometheus prometheus-community/prometheus \
-    -n prometheus \
+    mimir grafana/mimir-distributed \
+    -n mimir \
     --create-namespace \
-    --version {{prometheus_version}}
+    --version {{mimir_version}}
   kubectl create ns grafana || true
-  kubectl apply -f grafana/prometheus-datasource.yaml
+  kubectl apply -f grafana/mimir-datasource.yaml
 
 # Installs Loki
 loki:
@@ -253,6 +255,18 @@ grafana:
     --set "grafana\.ini".server.root_url="https://grafana.{{base_host}}" \
     --values grafana/helm-values.yaml \
     --version {{grafana_version}}
+
+# Installs Prometheus
+prometheus:
+  helm upgrade --install \
+    prometheus prometheus-community/prometheus \
+    -n prometheus \
+    --create-namespace \
+    --values prometheus/helm-values.yaml \
+    --version {{prometheus_version}}
+  kubectl create ns grafana || true
+  #kubectl apply -f grafana/prometheus-datasource.yaml
+
 
 # Installs ArgoCD
 argocd:

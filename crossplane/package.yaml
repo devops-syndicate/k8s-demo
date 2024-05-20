@@ -67,7 +67,7 @@ spec:
         forProvider:
           autoGeneratePassword: true
           engine: postgres
-          engineVersion: "14.7"
+          engineVersion: "16.2"
           instanceClass: db.t3.micro
           region: eu-central-1
           skipFinalSnapshot: true

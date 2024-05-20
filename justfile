@@ -1,23 +1,22 @@
 base_host := '127.0.0.1.nip.io'
 
-cilium_version := 'v1.14.4'
-sealed_secrets_version := '2.13.3'
-argo_rollouts_version := '2.32.4'
-kubeclarity_version := 'v2.22.0'
-metacontroller_version := 'v4.11.5'
-kyverno_version := '3.1.0'
-kubevela_version := '1.9.7'
-pyroscope_version := '1.3.0'
-prometheus_version := '25.8.0'
-loki_version := '2.9.11'
-tempo_version := '1.7.1'
+cilium_version := 'v1.15.5'
+sealed_secrets_version := '2.15.3'
+argo_rollouts_version := '2.35.2'
+kubeclarity_version := 'v2.23.1'
+metacontroller_version := '4.11.12'
+kyverno_version := '3.2.2'
+kubevela_version := '1.9.11'
+pyroscope_version := '1.5.1'
+prometheus_version := '25.21.0'
+loki_version := '2.10.2'
+tempo_version := '1.7.3'
 mimir_version := '5.3.0'
-grafana_version := '7.0.8'
-argocd_version := '5.51.4'
-crossplane_version := '1.14.3'
-cnpg_version := '0.19.1'
-metrics_server_version := '3.11.0'
-dashboard_version := 'v2.7.0'
+grafana_version := '7.3.11'
+argocd_version := '6.9.3'
+crossplane_version := '1.16.0'
+cnpg_version := '0.21.2'
+metrics_server_version := '3.12.1'
 
 _default:
   @just -l
@@ -38,7 +37,6 @@ up:
 install:
   just metrics_server
   just helm_repos
-  just dashboard
   just cnpg
   just sealed_secrets
   just rollouts
@@ -115,10 +113,6 @@ ingress_single:
 ingress:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
   kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
-
-# Installs Kubernetes dashboard
-dashboard:
-  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/{{dashboard_version}}/aio/deploy/recommended.yaml
 
 # Installs Cloudnative Postgres
 cnpg:
@@ -275,7 +269,7 @@ argocd:
     -n argocd \
     --create-namespace \
     --version {{argocd_version}} \
-    --set server.ingress.hosts="{argo-cd.{{base_host}}}" \
+    --set server.ingress.hostname="argo-cd.{{base_host}}" \
     --values argocd/helm-values.yaml \
     --timeout 6m0s \
     --wait

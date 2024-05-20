@@ -3,16 +3,16 @@ server:
     enabled: true
   extraArgs:
   - --insecure
-  config:
-    accounts.backstage: apiKey
-    application.resourceTrackingMethod: annotation+label
-  rbacConfig:
-    policy.csv: |
-      g, backstage, role:admin
 controller:
   args:
     appResyncPeriod: 30
 configs:
+  cm:
+    accounts.backstage: apiKey
+    application.resourceTrackingMethod: annotation+label
+  rbac:
+    policy.csv: |
+      g, backstage, role:admin
   secret:
     argocdServerAdminPassword: "$2a$10$uFpv5.xxyayOJP0gjG1W4O3dwk9aUv/0pL./uyR3R8uwrvCDAzgPy"
     argocdServerAdminPasswordMtime: "2022-06-02T18:44:00Z"

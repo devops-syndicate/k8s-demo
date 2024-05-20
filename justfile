@@ -38,10 +38,10 @@ install:
   just metrics_server
   just helm_repos
   just cnpg
-  just sealed_secrets
-  just rollouts
-  just metacontroller
-  just kyverno
+  #just sealed_secrets
+  #just rollouts
+  #just metacontroller
+  #just kyverno
   just kubevela
   just pyroscope
   just mimir
@@ -67,6 +67,7 @@ helm_repos:
   helm repo add argo https://argoproj.github.io/argo-helm
   helm repo add crossplane-stable https://charts.crossplane.io/stable
   helm repo add cnpg https://cloudnative-pg.github.io/charts
+  helm repo add kubeclarity https://openclarity.github.io/kubeclarity
   helm repo update
 
 # Stops KIND cluster
@@ -286,7 +287,7 @@ crossplane:
     -n crossplane-system \
     --create-namespace \
     --version {{crossplane_version}} \
-    --set "provider.packages={xpkg.upbound.io/upbound/provider-family-aws:v0.44.0,xpkg.upbound.io/upbound/provider-aws-rds:v0.44.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.15.0,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.9.0}" \
+    --set "provider.packages={xpkg.upbound.io/upbound/provider-family-aws:v1.4.0,xpkg.upbound.io/upbound/provider-aws-rds:v1.4.0,xpkg.upbound.io/crossplane-contrib/provider-helm:v0.18.1,xpkg.upbound.io/crossplane-contrib/provider-kubernetes:v0.13.0}" \
     --wait
 
   while : ; do
@@ -294,7 +295,7 @@ crossplane:
       --for=condition=ready pod \
       --selector=pkg.crossplane.io/provider=provider-kubernetes \
       --timeout=3m0s && break
-    sleep 20
+    sleep 5
   done
 
   ## Configure Kubernetes Crossplane Provider
@@ -307,7 +308,7 @@ crossplane:
       --for=condition=ready pod \
       --selector=pkg.crossplane.io/provider=provider-helm \
       --timeout=3m0s && break
-    sleep 20
+    sleep 5
   done
 
   ## Configure Helm Crossplane Provider
@@ -320,7 +321,7 @@ crossplane:
       --for=condition=ready pod \
       --selector=pkg.crossplane.io/provider=provider-aws-rds \
       --timeout=3m0s && break
-    sleep 20
+    sleep 5
   done
 
   ## Create AWS credential secrets for AWS crossplane provider

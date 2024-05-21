@@ -4,7 +4,7 @@ metadata:
   labels:
     grafana_datasource: ""
   name: mimir-datasource
-  namespace: grafana
+  namespace: observability
 data:
   mimir.yaml: |
     apiVersion: 1
@@ -13,4 +13,4 @@ data:
       name: mimir
       type: prometheus
       uid: mimir
-      url: http://mimir-nginx.mimir:80/prometheus
+      url: http://mimir-nginx.observability:80/prometheus

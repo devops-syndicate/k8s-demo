@@ -4,7 +4,7 @@ metadata:
   labels:
     grafana_datasource: ""
   name: loki-datasource
-  namespace: grafana
+  namespace: observability
 data:
   loki.yaml: |
     apiVersion: 1
@@ -18,4 +18,4 @@ data:
       name: loki
       type: loki
       uid: loki
-      url: http://loki.loki:3100
+      url: http://loki.observability:3100

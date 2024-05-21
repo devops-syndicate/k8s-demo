@@ -4,7 +4,7 @@ metadata:
   labels:
     grafana_datasource: ""
   name: prometheus-datasource
-  namespace: grafana
+  namespace: observability
 data:
   prometheus.yaml: |
     apiVersion: 1
@@ -12,4 +12,4 @@ data:
     - name: prometheus
       type: prometheus
       uid: prometheus
-      url: http://prometheus-server.prometheus
+      url: http://prometheus-server.observability

@@ -4,7 +4,7 @@ metadata:
   labels:
     grafana_datasource: ""
   name: pyroscope-datasource
-  namespace: grafana
+  namespace: observability 
 data:
   pyroscope.yaml: |
     apiVersion: 1
@@ -12,4 +12,4 @@ data:
     - name: pyroscope
       type: grafana-pyroscope-datasource
       uid: pyroscope
-      url: http://pyroscope.pyroscope:4040
+      url: http://pyroscope.observability:4040

@@ -195,41 +195,37 @@ kubevela:
 pyroscope:
   helm upgrade --install \
     pyroscope grafana/pyroscope \
-    -n pyroscope \
+    -n observability \
     --create-namespace \
     --version {{pyroscope_version}}
-  kubectl create ns grafana || true
   kubectl apply -f grafana/pyroscope-datasource.yaml
 
 # Installs mimir
 mimir:
   helm upgrade --install \
     mimir grafana/mimir-distributed \
-    -n mimir \
+    -n observability \
     --create-namespace \
     --version {{mimir_version}}
-  kubectl create ns grafana || true
   kubectl apply -f grafana/mimir-datasource.yaml
 
 # Installs Loki
 loki:
   helm upgrade --install \
     loki grafana/loki-stack \
-    -n loki \
+    -n observability \
     --create-namespace \
     --version {{loki_version}}
-  kubectl create ns grafana || true
   kubectl apply -f grafana/loki-datasource.yaml
 
 # Installs Tempo
 tempo:
   helm upgrade --install \
     tempo grafana/tempo \
-    -n tempo \
+    -n observability \
     --create-namespace \
     --set "tempo.searchEnabled=true" \
     --version {{tempo_version}}
-  kubectl create ns grafana || true
   kubectl apply -f grafana/tempo-datasource.yaml
 
 ## Installs Grafana
@@ -239,12 +235,12 @@ grafana:
   echo "AUTH_GITHUB_CLIENT_ID=$AUTH_GITHUB_CLIENT_ID" >> grafana.env
   echo "AUTH_GITHUB_CLIENT_SECRET=$AUTH_GITHUB_CLIENT_SECRET" >> grafana.env
 
-  kubectl create ns grafana || true
-  kubectl create secret generic grafana-github -n grafana --from-env-file=grafana.env
+  kubectl create ns observability || true
+  kubectl create secret generic grafana-github -n observability --from-env-file=grafana.env
 
   helm upgrade --install \
     grafana grafana/grafana \
-    -n grafana \
+    -n observability \
     --create-namespace \
     --set ingress.hosts="{grafana.{{base_host}}}" \
     --set "grafana\.ini".server.root_url="https://grafana.{{base_host}}" \
@@ -255,11 +251,10 @@ grafana:
 prometheus:
   helm upgrade --install \
     prometheus prometheus-community/prometheus \
-    -n prometheus \
+    -n observability \
     --create-namespace \
     --values prometheus/helm-values.yaml \
     --version {{prometheus_version}}
-  kubectl create ns grafana || true
   #kubectl apply -f grafana/prometheus-datasource.yaml
 
 

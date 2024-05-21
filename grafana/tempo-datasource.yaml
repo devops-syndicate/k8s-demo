@@ -4,7 +4,7 @@ metadata:
   labels:
     grafana_datasource: ""
   name: tempo-datasource
-  namespace: grafana
+  namespace: observability
 data:
   tempo.yaml: |
     apiVersion: 1
@@ -18,4 +18,4 @@ data:
       name: tempo
       type: tempo
       uid: tempo
-      url: http://tempo.tempo:3100
+      url: http://tempo.observability:3100

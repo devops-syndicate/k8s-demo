@@ -6,7 +6,7 @@ ingress:
 sidecar:
   datasources:
     enabled: true
-    searchNamespace: grafana
+    searchNamespace: observability
     initDatasources: true
   dashboards:
     enabled: true

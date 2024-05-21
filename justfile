@@ -255,7 +255,7 @@ prometheus:
     --create-namespace \
     --values prometheus/helm-values.yaml \
     --version {{prometheus_version}}
-  #kubectl apply -f grafana/prometheus-datasource.yaml
+  kubectl apply -f grafana/prometheus-datasource.yaml
 
 
 # Installs ArgoCD

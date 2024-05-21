@@ -3,5 +3,10 @@ global:
     kubernetes.io/os: linux
     kubernetes.io/arch: arm64
 kubeclarity:
+  docker:
+    imageName: "sselzer/kubeclarity:5f6b411161100c15196c8149c0b1df5537c88a05"
   ingress:
     enabled: true
+kubeclarity-sbom-db:
+  docker:
+    imageName: "sselzer/kubeclarity-sbom-db:5f6b411161100c15196c8149c0b1df5537c88a05"

@@ -10,11 +10,14 @@ data:
     apiVersion: 1
     datasources:
     - jsonData:
+        timeout: 60
+        maxLines: 1000
         derivedFields:
         - datasourceUid: tempo
           matcherRegex: trace_id\":\"(\w+)\"
           name: trace_id
           url: $${__value.raw}
+      access: proxy
       name: loki
       type: loki
       uid: loki

@@ -9,7 +9,8 @@ kyverno_version := '3.2.2'
 kubevela_version := '1.9.11'
 pyroscope_version := '1.5.1'
 prometheus_version := '25.21.0'
-loki_version := '2.10.2'
+loki_version := '6.5.2'
+promtail_version := '6.15.5'
 tempo_version := '1.7.3'
 mimir_version := '5.3.0'
 grafana_version := '7.3.11'
@@ -212,10 +213,19 @@ mimir:
 # Installs Loki
 loki:
   helm upgrade --install \
-    loki grafana/loki-stack \
+    loki grafana/loki \
     -n observability \
     --create-namespace \
+    --values loki/helm-values.yaml \
     --version {{loki_version}}
+
+  helm upgrade --install \
+    promtail grafana/promtail \
+    -n observability \
+    --create-namespace \
+    --values promtail/helm-values.yaml \
+    --version {{promtail_version}}
+
   kubectl apply -f grafana/loki-datasource.yaml
 
 # Installs Tempo

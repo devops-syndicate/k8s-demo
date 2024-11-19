@@ -3,7 +3,14 @@
   "packages": [
     "kubernetes-helm@latest",
     "kind@latest",
-    "just@latest"
+    "just@latest",
+    "aws@latest",
+    "argocd@latest",
+    "k9s@latest",
+    "kns@latest",
+    "crossplane-cli@latest",
+    "cilium-cli@latest",
+    "linkerd@latest"
   ],
   "shell": {
     "init_hook": [

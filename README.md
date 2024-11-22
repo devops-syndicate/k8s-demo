@@ -4,11 +4,12 @@
 
 *Tools*
 
-- kind
-- kubectl
-- helm
-- aws CLI
-- argocd CLI
+- just (https://just.systems/)
+- kind (https://kind.sigs.k8s.io/)
+- kubectl (https://kubernetes.io/)
+- helm (https://helm.sh/)
+- aws CLI (https://aws.amazon.com/cli/)
+- argocd CLI (https://argo-workflows.readthedocs.io/en/latest/walk-through/argo-cli/)
 
 *AWS Setup*
 

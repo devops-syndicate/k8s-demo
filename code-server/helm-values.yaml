@@ -1,0 +1,50 @@
+image:
+  repository: sselzer/code
+  tag: latest
+ingress:
+  enabled: true
+password: test123
+extraInitContainers: |
+  - name: plugins
+    image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+    imagePullPolicy: IfNotPresent
+    env:
+      - name: SERVICE_URL
+        value: https://open-vsx.org/vscode/gallery
+      - name: ITEM_URL
+        value: https://open-vsx.org/vscode/item
+    command:
+      - sh
+      - -c
+      - |
+        code-server --install-extension golang.Go
+    volumeMounts:
+      - name: data
+        mountPath: /home/coder
+  - name: clone
+    image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+    imagePullPolicy: IfNotPresent
+    command:
+      - sh
+      - -c
+      - git clone https://github.com/tommy1199/argocd-demo-apps /home/coder/workspace
+    volumeMounts:
+      - name: data
+        mountPath: /home/coder
+extraContainers: |
+  - name: dind-daemon
+    image: docker:dind
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
+    resources:
+      requests:
+        cpu: 20m
+        memory: 512Mi
+    securityContext:
+        privileged: true
+extraArgs:
+- /home/coder/workspace
+extraVars:
+- name: DOCKER_HOST
+  value: tcp://127.0.0.1:2375

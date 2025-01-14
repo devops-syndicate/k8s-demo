@@ -116,6 +116,13 @@ ingress:
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
   kubectl rollout status deployment ingress-nginx-controller -n ingress-nginx --timeout=5m
 
+code_server:
+  helm upgrade --install code-server code-server/chart \
+    -n code-server \
+    --create-namespace \
+    --set-json ingress.hosts='[{"host":"code.{{base_host}}","paths":["/"]}]' \
+    --values code-server/helm-values.yaml
+
 # Installs Cloudnative Postgres
 cnpg:
   helm upgrade --install \

@@ -1,23 +1,22 @@
 base_host := '127.0.0.1.nip.io'
 
-cilium_version := 'v1.15.5'
-sealed_secrets_version := '2.15.3'
-argo_rollouts_version := '2.35.2'
-kubeclarity_version := 'v2.23.1'
-metacontroller_version := '4.11.12'
-kyverno_version := '3.2.2'
-kubevela_version := '1.9.11'
-pyroscope_version := '1.5.1'
-prometheus_version := '25.21.0'
-loki_version := '6.5.2'
-promtail_version := '6.15.5'
-tempo_version := '1.7.3'
-mimir_version := '5.3.0'
-grafana_version := '7.3.11'
-argocd_version := '6.9.3'
-crossplane_version := '1.16.0'
-cnpg_version := '0.21.2'
-metrics_server_version := '3.12.1'
+sealed_secrets_version := '2.17.3'
+argo_rollouts_version := '2.40.1'
+kubeclarity_version := 'v2.23.3'
+metacontroller_version := '4.12.13'
+kyverno_version := '3.4.4'
+kubevela_version := '1.10.3'
+pyroscope_version := '1.14.0'
+prometheus_version := '27.28.0'
+loki_version := '6.32.0'
+promtail_version := '6.17.0'
+tempo_version := '1.23.2'
+mimir_version := '5.7.0'
+grafana_version := '9.2.10'
+argocd_version := '8.1.4'
+crossplane_version := '1.20.0'
+cnpg_version := '0.24.0'
+metrics_server_version := '3.12.2'
 
 _default:
   @just -l
@@ -82,28 +81,6 @@ stop_kind:
 # Starts KIND cluster
 start_kind:
   kind create cluster --name k8s-demo --config=cluster.yaml
-  just cilium
-
-# Installs cilium
-cilium:
-  helm upgrade --install \
-    cilium cilium/cilium \
-    -n kube-system \
-    --set nodeinit.enabled=true \
-    --set kubeProxyReplacement=partial \
-    --set hostServices.enabled=false \
-    --set externalIPs.enabled=true \
-    --set nodePort.enabled=true \
-    --set hostPort.enabled=true \
-    --set ipam.mode=kubernetes \
-    --set hubble.relay.enabled=true \
-    --set hubble.ui.enabled=true \
-    --set prometheus.enabled=true \
-    --set operator.prometheus.enabled=true \
-    --set hubble.metrics.enabled="{dns,drop,tcp,flow,icmp,http}" \
-    --version {{cilium_version}} \
-    --timeout 6m0s \
-    --wait
 
 # Installs Ingress Controller for single node
 ingress_single:
@@ -242,6 +219,7 @@ tempo:
     -n observability \
     --create-namespace \
     --set "tempo.searchEnabled=true" \
+    --set "tempo.metricsGenerator.enabled=true" \
     --version {{tempo_version}}
   kubectl apply -f grafana/tempo-datasource.yaml
 
